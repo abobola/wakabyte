@@ -78,7 +78,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 2: Maze Grid & Boundary Engine
 **Goal:** Parse 2D maze matrix, identify tile classifications, and enforce boundary rules.
 
-- [ ] **2.1 Maze Matrix & Tile Types (`src/core/Grid.ts`, `src/config/mapData.ts`)**
+- [x] **2.1 Maze Matrix & Tile Types (`src/core/Grid.ts`, `src/config/mapData.ts`)**
   - **Tests (`tests/Grid.test.ts`):**
     - Matrix parsing and tile coordinate lookups (`getTileAt(x, y)`).
     - Tile classifications: `WALL`, `EMPTY`, `PELLET`, `ENERGIZER`, `GHOST_HOUSE`, `GATE`.
