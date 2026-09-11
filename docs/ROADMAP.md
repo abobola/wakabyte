@@ -58,7 +58,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 1: Core Math Primitives & Direction Vectors
 **Goal:** Establish immutable 2D vector arithmetic and cardinal direction utilities.
 
-- [ ] **1.1 `Vector2D` Value Object (`src/core/Vector2D.ts`)**
+- [x] **1.1 `Vector2D` Value Object (`src/core/Vector2D.ts`)**
   - **Tests (`tests/Vector2D.test.ts`):**
     - Vector addition, subtraction, scalar multiplication.
     - Integer tile coordinate conversions (`toTileCoordinate()`, `fromTileCoordinate()`).
@@ -66,7 +66,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
     - Immutability and equality checks (`equals()`, `clone()`).
   - **Deliverable:** Fully tested `Vector2D` class.
 
-- [ ] **1.2 `Direction` System (`src/core/Direction.ts`)**
+- [x] **1.2 `Direction` System (`src/core/Direction.ts`)**
   - **Tests (`tests/Direction.test.ts`):**
     - Cardinal directions: `UP`, `DOWN`, `LEFT`, `RIGHT`, `NONE`.
     - Unit vector representations (`UP` $\rightarrow (0, -1)$, `DOWN` $\rightarrow (0, 1)$, etc.).
