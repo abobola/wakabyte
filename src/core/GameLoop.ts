@@ -1,17 +1,17 @@
-import { Grid, TileType } from './Grid';
-import { Vector2D } from './Vector2D';
-import { Direction } from './Direction';
-import { ScoreManager } from './ScoreManager';
-import {
-  CollisionManager,
-  CollisionType,
-  GhostEntity,
-  DEFAULT_INITIAL_LIVES,
-  CollisionResult,
-} from './Collision';
-import { Pacman, Ghost } from '../entities';
 import { GhostType, GlobalWaveTimer } from '../ai';
 import { RAW_MAP_DATA } from '../config/mapData';
+import { Ghost, Pacman } from '../entities';
+import {
+  CollisionManager,
+  type CollisionResult,
+  CollisionType,
+  DEFAULT_INITIAL_LIVES,
+  type GhostEntity,
+} from './Collision';
+import { Direction } from './Direction';
+import { Grid, TileType } from './Grid';
+import { ScoreManager } from './ScoreManager';
+import { Vector2D } from './Vector2D';
 
 /**
  * Default upper limit on simulation step delta time in seconds (0.1s = 100ms)

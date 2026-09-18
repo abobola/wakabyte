@@ -1,24 +1,24 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Vector2D, Direction, Grid, TileType } from '../src/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { GhostState, GhostType } from '../src/ai';
+import { Direction, Grid, TileType, Vector2D } from '../src/core';
 import {
   CanvasRenderer,
   DEFAULT_CANVAS_THEME,
-  RenderablePacman,
-  RenderableGhost,
-  RenderableHUD,
-  RenderGameState,
+  type RenderableGhost,
+  type RenderableHUD,
+  type RenderablePacman,
+  type RenderGameState,
 } from '../src/render';
 
 /**
  * Mock CanvasRenderingContext2D tracking all draw calls for verification in headless tests.
  */
-export interface MockCall {
+interface MockCall {
   method: string;
-  args: any[];
+  args: unknown[];
 }
 
-export class MockCanvasRenderingContext2D {
+class MockCanvasRenderingContext2D {
   public calls: MockCall[] = [];
   public fillStyle: string | CanvasGradient | CanvasPattern = '#000000';
   public font: string = '10px sans-serif';
@@ -52,7 +52,7 @@ export class MockCanvasRenderingContext2D {
     radius: number,
     startAngle: number,
     endAngle: number,
-    counterclockwise?: boolean
+    counterclockwise?: boolean,
   ): void {
     this.calls.push({
       method: 'arc',
@@ -87,12 +87,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       scale: 1,
     });
 
-    testGrid = Grid.fromStringArray([
-      '####',
-      '#.o#',
-      '#-G#',
-      '#  #',
-    ]);
+    testGrid = Grid.fromStringArray(['####', '#.o#', '#-G#', '#  #']);
   });
 
   describe('Initialization & Configuration', () => {
@@ -145,7 +140,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.clear();
 
       const fillRectCall = ctx.calls.find(
-        (c) => c.method === 'fillRect' && c.args[0] === 0 && c.args[1] === 0
+        (c) => c.method === 'fillRect' && c.args[0] === 0 && c.args[1] === 0,
       );
       expect(fillRectCall).toBeDefined();
       expect(fillRectCall?.args[2]).toBe(224);
@@ -239,7 +234,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.renderPacman(pacman);
 
       const arcCall = ctx.calls.find(
-        (c) => c.method === 'arc' && c.args[0] === 50.5 && c.args[1] === 60.25
+        (c) => c.method === 'arc' && c.args[0] === 50.5 && c.args[1] === 60.25,
       );
       expect(arcCall).toBeDefined();
       expect(ctx.fillStyle).toBe(DEFAULT_CANVAS_THEME.pacmanColor);
@@ -353,7 +348,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.renderGhost(ghost);
 
       const fillCall = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.blinkyColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.blinkyColor,
       );
       expect(fillCall).toBeDefined();
     });
@@ -374,9 +369,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
           state: GhostState.SCATTER,
         });
 
-        const fillCall = ctx.calls.find(
-          (c) => c.method === 'fill' && c.args[0] === expectedColor
-        );
+        const fillCall = ctx.calls.find((c) => c.method === 'fill' && c.args[0] === expectedColor);
         expect(fillCall).toBeDefined();
       }
     });
@@ -394,7 +387,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.renderGhost(ghost);
 
       const blueFillCall = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.frightenedColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.frightenedColor,
       );
       expect(blueFillCall).toBeDefined();
     });
@@ -414,7 +407,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.renderGhost(ghost, 0.125);
 
       const flashFillCall = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.frightenedFlashColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.frightenedFlashColor,
       );
       expect(flashFillCall).toBeDefined();
     });
@@ -432,18 +425,18 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
 
       // Body color fill should NOT be called
       const bodyFillCall = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.blinkyColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.blinkyColor,
       );
       expect(bodyFillCall).toBeUndefined();
 
       // Eye whites and pupils should be drawn
       const eyeWhiteFill = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.eyeWhiteColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.eyeWhiteColor,
       );
       expect(eyeWhiteFill).toBeDefined();
 
       const pupilFill = ctx.calls.find(
-        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.pupilColor
+        (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.pupilColor,
       );
       expect(pupilFill).toBeDefined();
     });
@@ -497,14 +490,10 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
 
       renderer.renderHUD(hud);
 
-      const oneUpCall = ctx.calls.find(
-        (c) => c.method === 'fillText' && c.args[0] === '1UP'
-      );
+      const oneUpCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === '1UP');
       expect(oneUpCall).toBeDefined();
 
-      const scoreCall = ctx.calls.find(
-        (c) => c.method === 'fillText' && c.args[0] === '1250'
-      );
+      const scoreCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === '1250');
       expect(scoreCall).toBeDefined();
     });
 
@@ -518,12 +507,12 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       renderer.renderHUD(hud);
 
       const highScoreHeaderCall = ctx.calls.find(
-        (c) => c.method === 'fillText' && c.args[0] === 'HIGH SCORE'
+        (c) => c.method === 'fillText' && c.args[0] === 'HIGH SCORE',
       );
       expect(highScoreHeaderCall).toBeDefined();
 
       const highScoreValCall = ctx.calls.find(
-        (c) => c.method === 'fillText' && c.args[0] === '24000'
+        (c) => c.method === 'fillText' && c.args[0] === '24000',
       );
       expect(highScoreValCall).toBeDefined();
     });
@@ -554,9 +543,7 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
 
       renderer.renderHUD(hud);
 
-      const statusCall = ctx.calls.find(
-        (c) => c.method === 'fillText' && c.args[0] === 'READY!'
-      );
+      const statusCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === 'READY!');
       expect(statusCall).toBeDefined();
       expect(statusCall?.args[3]).toBe('#FFFF00');
     });

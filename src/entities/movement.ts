@@ -1,4 +1,4 @@
-import { Vector2D, Direction, getDirectionVector } from '../core';
+import { type Direction, getDirectionVector, Vector2D } from '../core';
 
 /**
  * Entity position specification options supporting explicit vector position or discrete tile coordinate.
@@ -18,7 +18,7 @@ export interface EntityPositionOptions {
 export function resolveEntityPosition(
   options?: EntityPositionOptions,
   tileSize: number = 8,
-  defaultTile: Vector2D = new Vector2D(0, 0)
+  defaultTile: Vector2D = new Vector2D(0, 0),
 ): Vector2D {
   if (options?.position) {
     return options.position.clone();
@@ -64,7 +64,7 @@ export function getTileLane(
   position: Vector2D,
   direction: Direction,
   currentTile: Vector2D,
-  tileSize: number
+  tileSize: number,
 ): TileLane | null {
   const dirVec = getDirectionVector(direction);
   if (dirVec.x === 0 && dirVec.y === 0) {

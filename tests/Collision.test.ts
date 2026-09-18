@@ -1,17 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { GhostFSM, GhostState } from '../src/ai';
 import {
-  Vector2D,
-  ScoreManager,
-  Grid,
-  checkProximity,
-  CollisionType,
   CollisionManager,
+  CollisionType,
+  checkProximity,
   DEFAULT_COLLISION_DISTANCE,
   DEFAULT_INITIAL_LIVES,
   type GhostEntity,
+  Grid,
   type PacmanEntity,
+  ScoreManager,
+  Vector2D,
 } from '../src/core';
-import { GhostFSM, GhostState } from '../src/ai';
 import { Pacman } from '../src/entities';
 
 describe('Entity Collision System (Phase 5.2)', () => {
@@ -129,7 +129,7 @@ describe('Entity Collision System (Phase 5.2)', () => {
     const createMockGhost = (
       position: Vector2D,
       state: GhostState,
-      spawnPosition: Vector2D = position.clone()
+      spawnPosition: Vector2D = position.clone(),
     ): GhostEntity => {
       let currentPos = position.clone();
       let currentState = state;
@@ -147,7 +147,7 @@ describe('Entity Collision System (Phase 5.2)', () => {
 
     const createMockPacman = (
       position: Vector2D,
-      spawnPosition: Vector2D = position.clone()
+      spawnPosition: Vector2D = position.clone(),
     ): PacmanEntity => {
       let currentPos = position.clone();
       return {
@@ -309,7 +309,7 @@ describe('Entity Collision System (Phase 5.2)', () => {
 
         const results = collisionManager.resolveCollisions(pacman, [farGhost, frightenedGhost]);
 
-        expect(results.length).toBe(2);
+        expect(results).toHaveLength(2);
         expect(results[0].type).toBe(CollisionType.NONE);
         expect(results[1].type).toBe(CollisionType.GHOST_EATEN);
         expect(results[1].pointsAwarded).toBe(200);
@@ -332,11 +332,7 @@ describe('Entity Collision System (Phase 5.2)', () => {
 
   describe('Integration with Concrete Pacman and GhostFSM', () => {
     it('seamlessly integrates concrete Pacman entity and GhostFSM state machine', () => {
-      const grid = Grid.fromStringArray([
-        '.....',
-        '.....',
-        '.....',
-      ]);
+      const grid = Grid.fromStringArray(['.....', '.....', '.....']);
 
       const pacman = new Pacman({
         grid,
@@ -346,7 +342,7 @@ describe('Entity Collision System (Phase 5.2)', () => {
       const fsm = new GhostFSM();
       fsm.triggerFrightened(6);
 
-      let ghostPos = Vector2D.tileCenter(1, 1, 8);
+      const ghostPos = Vector2D.tileCenter(1, 1, 8);
       const ghost: GhostEntity = {
         getPosition: () => ghostPos,
         getState: () => fsm.getState(),

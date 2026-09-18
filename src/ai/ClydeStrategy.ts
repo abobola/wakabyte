@@ -1,11 +1,11 @@
-import { Vector2D } from '../core';
+import type { Vector2D } from '../core/Vector2D';
 import { GhostState } from './GhostFSM';
 import {
-  GhostStrategy,
-  GhostType,
-  DEFAULT_SCATTER_TARGETS,
   DEFAULT_GHOST_HOUSE_TARGET,
-  TargetingContext,
+  DEFAULT_SCATTER_TARGETS,
+  type GhostStrategy,
+  GhostType,
+  type TargetingContext,
 } from './GhostStrategy';
 
 /**
@@ -25,7 +25,7 @@ export class ClydeStrategy implements GhostStrategy {
 
   constructor(
     scatterTarget: Vector2D = DEFAULT_SCATTER_TARGETS[GhostType.CLYDE],
-    proximityThreshold: number = DEFAULT_CLYDE_PROXIMITY_THRESHOLD
+    proximityThreshold: number = DEFAULT_CLYDE_PROXIMITY_THRESHOLD,
   ) {
     this.scatterTarget = scatterTarget;
     this.proximityThreshold = proximityThreshold;

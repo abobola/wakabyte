@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Grid, TileType, Vector2D, Direction } from '../src/core';
-import { RAW_MAP_DATA, MAP_WIDTH, MAP_HEIGHT } from '../src/config/mapData';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { MAP_HEIGHT, MAP_WIDTH, RAW_MAP_DATA } from '../src/config/mapData';
+import { Direction, Grid, TileType, Vector2D } from '../src/core';
 
 describe('Grid', () => {
   describe('TileType enum', () => {
@@ -34,11 +34,7 @@ describe('Grid', () => {
     });
 
     it('should parse grid from string array with custom character mappings', () => {
-      const stringMap = [
-        '###',
-        '. o',
-        '#-G',
-      ];
+      const stringMap = ['###', '. o', '#-G'];
       const grid = Grid.fromStringArray(stringMap);
 
       expect(grid.width).toBe(3);
@@ -53,11 +49,7 @@ describe('Grid', () => {
     });
 
     it('should parse alternate character representations', () => {
-      const stringMap = [
-        'WWW',
-        '.*E',
-        'W=H',
-      ];
+      const stringMap = ['WWW', '.*E', 'W=H'];
       const grid = Grid.fromStringArray(stringMap);
 
       expect(grid.getTileAt(0, 0)).toBe(TileType.WALL);
@@ -81,13 +73,7 @@ describe('Grid', () => {
     let grid: Grid;
 
     beforeEach(() => {
-      grid = Grid.fromStringArray([
-        '#####',
-        '#...#',
-        '#.###',
-        '#...#',
-        '#####',
-      ]);
+      grid = Grid.fromStringArray(['#####', '#...#', '#.###', '#...#', '#####']);
     });
 
     it('should lookup tiles via numeric coordinates (x, y)', () => {
@@ -132,12 +118,7 @@ describe('Grid', () => {
     let grid: Grid;
 
     beforeEach(() => {
-      grid = Grid.fromStringArray([
-        '#######',
-        '#. o -#',
-        '#  G  #',
-        '#######',
-      ]);
+      grid = Grid.fromStringArray(['#######', '#. o -#', '#  G  #', '#######']);
     });
 
     it('should consider PELLET, ENERGIZER, and EMPTY tiles walkable by default', () => {
@@ -170,48 +151,28 @@ describe('Grid', () => {
 
   describe('Intersection detection & walkable directions', () => {
     it('should list all walkable cardinal directions from a given tile', () => {
-      const grid = Grid.fromStringArray([
-        '###',
-        '. .',
-        '#.#',
-      ]);
+      const grid = Grid.fromStringArray(['###', '. .', '#.#']);
       const directions = grid.getWalkableDirections(1, 1);
       expect(directions).toContain(Direction.LEFT);
       expect(directions).toContain(Direction.RIGHT);
       expect(directions).toContain(Direction.DOWN);
       expect(directions).not.toContain(Direction.UP);
-      expect(directions.length).toBe(3);
+      expect(directions).toHaveLength(3);
     });
 
     it('should identify a 3-way T-junction as an intersection', () => {
-      const grid = Grid.fromStringArray([
-        '###',
-        '. .',
-        '#.#',
-      ]);
+      const grid = Grid.fromStringArray(['###', '. .', '#.#']);
       expect(grid.isIntersection(1, 1)).toBe(true);
     });
 
     it('should identify a 4-way intersection', () => {
-      const fourWayGrid = Grid.fromStringArray([
-        '#####',
-        '##.##',
-        '#...#',
-        '##.##',
-        '#####',
-      ]);
-      expect(fourWayGrid.getWalkableDirections(2, 2).length).toBe(4);
+      const fourWayGrid = Grid.fromStringArray(['#####', '##.##', '#...#', '##.##', '#####']);
+      expect(fourWayGrid.getWalkableDirections(2, 2)).toHaveLength(4);
       expect(fourWayGrid.isIntersection(2, 2)).toBe(true);
     });
 
     it('should NOT identify straight corridors, corners, dead ends, or walls as intersections', () => {
-      const grid = Grid.fromStringArray([
-        '#####',
-        '#..##',
-        '#.#.#',
-        '#...#',
-        '#####',
-      ]);
+      const grid = Grid.fromStringArray(['#####', '#..##', '#.#.#', '#...#', '#####']);
       // Corner at (1, 1) - only RIGHT and DOWN are walkable
       expect(grid.isIntersection(1, 1)).toBe(false);
 
@@ -228,12 +189,7 @@ describe('Grid', () => {
 
   describe('Tile queries and cloning', () => {
     it('should count total pellets and energizers accurately', () => {
-      const grid = Grid.fromStringArray([
-        '#####',
-        '#o.o#',
-        '#...#',
-        '#####',
-      ]);
+      const grid = Grid.fromStringArray(['#####', '#o.o#', '#...#', '#####']);
 
       expect(grid.countTiles(TileType.PELLET)).toBe(4);
       expect(grid.countTiles(TileType.ENERGIZER)).toBe(2);
@@ -241,24 +197,16 @@ describe('Grid', () => {
     });
 
     it('should find all coordinate positions of a given tile type', () => {
-      const grid = Grid.fromStringArray([
-        '#####',
-        '#o.o#',
-        '#####',
-      ]);
+      const grid = Grid.fromStringArray(['#####', '#o.o#', '#####']);
 
       const energizers = grid.findTilePositions(TileType.ENERGIZER);
-      expect(energizers.length).toBe(2);
+      expect(energizers).toHaveLength(2);
       expect(energizers.some((v) => v.equals(new Vector2D(1, 1)))).toBe(true);
       expect(energizers.some((v) => v.equals(new Vector2D(3, 1)))).toBe(true);
     });
 
     it('should create an independent deep clone with clone()', () => {
-      const original = Grid.fromStringArray([
-        '###',
-        '#.#',
-        '###',
-      ]);
+      const original = Grid.fromStringArray(['###', '#.#', '###']);
       const copy = original.clone();
 
       expect(copy.getTileAt(1, 1)).toBe(TileType.PELLET);
@@ -456,10 +404,10 @@ describe('Grid', () => {
 
       it('should throw an error if tileSize is zero or negative', () => {
         expect(() => arcadeGrid.wrapContinuous(new Vector2D(10, 10), 0)).toThrow(
-          'Tile size must be greater than zero'
+          'Tile size must be greater than zero',
         );
         expect(() => arcadeGrid.wrapContinuous(10, 10, -8)).toThrow(
-          'Tile size must be greater than zero'
+          'Tile size must be greater than zero',
         );
       });
     });

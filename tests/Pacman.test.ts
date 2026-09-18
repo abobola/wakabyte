@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Grid, Vector2D, Direction, InputBuffer } from '../src/core';
-import { Pacman, DEFAULT_PACMAN_SPEED, DEFAULT_TILE_SIZE } from '../src/entities';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { Direction, Grid, InputBuffer, Vector2D } from '../src/core';
+import { DEFAULT_PACMAN_SPEED, DEFAULT_TILE_SIZE, Pacman } from '../src/entities';
 
 describe('Pacman Controller', () => {
   let grid: Grid;
@@ -12,13 +12,7 @@ describe('Pacman Controller', () => {
   // 2: #.###
   // 3: #...#
   // 4: #####
-  const simpleMap = [
-    '#####',
-    '#...#',
-    '#.###',
-    '#...#',
-    '#####',
-  ];
+  const simpleMap = ['#####', '#...#', '#.###', '#...#', '#####'];
 
   beforeEach(() => {
     grid = Grid.fromStringArray(simpleMap);
@@ -358,11 +352,7 @@ describe('Pacman Controller', () => {
     beforeEach(() => {
       // Map with horizontal tunnel at row 1:
       // Col 0 and Col 4 are open EMPTY spaces representing tunnel exits
-      tunnelGrid = Grid.fromStringArray([
-        '#####',
-        ' ... ',
-        '#####',
-      ]);
+      tunnelGrid = Grid.fromStringArray(['#####', ' ... ', '#####']);
     });
 
     it('should wrap continuous coordinates seamlessly when exiting left tunnel', () => {

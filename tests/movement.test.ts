@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { Vector2D, Direction } from '../src/core';
+import { describe, expect, it } from 'vitest';
+import { Direction, Vector2D } from '../src/core';
 import { getTileLane, resolveEntityPosition } from '../src/entities/movement';
 
 describe('resolveEntityPosition', () => {

@@ -1,29 +1,28 @@
 import {
-  Vector2D,
+  BlinkyStrategy,
+  ClydeStrategy,
+  chooseFrightenedDirection,
+  chooseNextDirection,
+  DEFAULT_GHOST_HOUSE_TARGET,
+  GhostFSM,
+  GhostState,
+  type GhostStrategy,
+  GhostType,
+  type GlobalWaveTimer,
+  InkyStrategy,
+  PinkyStrategy,
+} from '../ai';
+import {
   Direction,
+  type GhostEntity,
+  type Grid,
   getDirectionVector,
   getOppositeDirection,
-  Grid,
-  WalkableOptions,
-  GhostEntity,
+  Vector2D,
+  type WalkableOptions,
 } from '../core';
-import {
-  GhostType,
-  GhostState,
-  GhostFSM,
-  GlobalWaveTimer,
-  GhostStrategy,
-  BlinkyStrategy,
-  PinkyStrategy,
-  InkyStrategy,
-  ClydeStrategy,
-  DEFAULT_GHOST_HOUSE_TARGET,
-  chooseNextDirection,
-  chooseFrightenedDirection,
-} from '../ai';
-
+import { getTileLane, resolveEntityPosition, type TileLane } from './movement';
 import { DEFAULT_TILE_SIZE } from './Pacman';
-import { getTileLane, TileLane, resolveEntityPosition } from './movement';
 
 /**
  * Default ghost speeds in pixels per second.
@@ -169,8 +168,6 @@ export class Ghost implements GhostEntity {
         return this.frightenedSpeed;
       case GhostState.EATEN:
         return this.eatenSpeed;
-      case GhostState.SCATTER:
-      case GhostState.CHASE:
       default:
         return this.baseSpeed;
     }
@@ -197,13 +194,9 @@ export class Ghost implements GhostEntity {
     };
 
     if (this.getState() === GhostState.FRIGHTENED) {
-      return chooseFrightenedDirection(
-        this.grid,
-        currentTile,
-        this.direction,
-        this.rng,
-        { walkableOptions }
-      );
+      return chooseFrightenedDirection(this.grid, currentTile, this.direction, this.rng, {
+        walkableOptions,
+      });
     }
 
     const targetTile = isEaten
@@ -216,13 +209,9 @@ export class Ghost implements GhostEntity {
           ghostState: this.getState(),
         });
 
-    return chooseNextDirection(
-      this.grid,
-      currentTile,
-      this.direction,
-      targetTile,
-      { walkableOptions }
-    );
+    return chooseNextDirection(this.grid, currentTile, this.direction, targetTile, {
+      walkableOptions,
+    });
   }
 
   /**
@@ -261,7 +250,7 @@ export class Ghost implements GhostEntity {
   private handleWaypointReached(
     lane: TileLane,
     currentTile: Vector2D,
-    context: GhostUpdateContext
+    context: GhostUpdateContext,
   ): void {
     const reachedTile = lane.isBeforeCenter ? currentTile : currentTile.add(lane.dirVec);
     const reachedAxisPos = lane.isBeforeCenter
@@ -281,10 +270,7 @@ export class Ghost implements GhostEntity {
    * Performs a single continuous movement step along the active tile lane.
    * Returns remaining distance after the step, or 0 if movement stopped.
    */
-  private executeMovementStep(
-    remainingDistance: number,
-    context: GhostUpdateContext
-  ): number {
+  private executeMovementStep(remainingDistance: number, context: GhostUpdateContext): number {
     const currentTile = this.getTile();
     this.checkHouseRevival(currentTile);
 

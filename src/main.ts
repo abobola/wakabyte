@@ -1,7 +1,7 @@
-import { Direction, GameLoop } from './core';
 import { GhostState } from './ai';
-import { CanvasRenderer, RenderableGhost } from './render';
 import { SoundManager } from './audio';
+import { Direction, GameLoop } from './core';
+import { CanvasRenderer, type RenderableGhost } from './render';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
 
@@ -78,6 +78,23 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
   }
 });
 
+function resolveStatusText(
+  isGameOver: boolean,
+  isPaused: boolean,
+  pacmanDirection: Direction,
+): string | undefined {
+  if (isGameOver) {
+    return 'GAME OVER';
+  }
+  if (isPaused) {
+    return 'PAUSED';
+  }
+  if (pacmanDirection === Direction.NONE) {
+    return 'READY!';
+  }
+  return undefined;
+}
+
 let lastTimestamp = performance.now();
 
 function frameStep(currentTimestamp: number): void {
@@ -121,13 +138,11 @@ function frameStep(currentTimestamp: number): void {
       score: scoreManager.getScore(),
       highScore: scoreManager.getHighScore(),
       lives: collisionManager.getLives(),
-      statusText: collisionManager.isGameOver()
-        ? 'GAME OVER'
-        : gameLoop.isPaused()
-        ? 'PAUSED'
-        : pacman.getDirection() === Direction.NONE
-        ? 'READY!'
-        : undefined,
+      statusText: resolveStatusText(
+        collisionManager.isGameOver(),
+        gameLoop.isPaused(),
+        pacman.getDirection(),
+      ),
     },
     energizerVisible: Math.floor(currentTimestamp / 250) % 2 === 0,
     animationTick: Math.floor(currentTimestamp / 120),

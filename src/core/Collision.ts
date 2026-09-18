@@ -1,6 +1,6 @@
-import { Vector2D } from './Vector2D';
-import { ScoreManager } from './ScoreManager';
 import { GhostState } from '../ai';
+import { ScoreManager } from './ScoreManager';
+import type { Vector2D } from './Vector2D';
 
 /**
  * Default initial player lives in authentic arcade rules (3 lives).
@@ -32,7 +32,7 @@ export interface CollidableEntity {
 /**
  * Pacman entity contract for collision resolution.
  */
-export interface PacmanEntity extends CollidableEntity {}
+export type PacmanEntity = CollidableEntity;
 
 /**
  * Ghost entity contract for collision resolution.
@@ -73,7 +73,7 @@ export interface CollisionManagerOptions {
 export function checkProximity(
   posA: Vector2D,
   posB: Vector2D,
-  threshold: number = DEFAULT_COLLISION_DISTANCE
+  threshold: number = DEFAULT_COLLISION_DISTANCE,
 ): boolean {
   return posA.euclideanDistanceTo(posB) <= threshold + 1e-9;
 }
@@ -164,7 +164,7 @@ export class CollisionManager {
     const isNearby = checkProximity(
       pacman.getPosition(),
       ghost.getPosition(),
-      this.collisionDistance
+      this.collisionDistance,
     );
 
     if (!isNearby) {
@@ -233,7 +233,7 @@ export class CollisionManager {
    */
   public resolveCollisions(
     pacman: PacmanEntity,
-    ghosts: readonly GhostEntity[]
+    ghosts: readonly GhostEntity[],
   ): CollisionResult[] {
     const results: CollisionResult[] = [];
 

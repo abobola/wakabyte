@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   Direction,
   getDirectionVector,
   getOppositeDirection,
   isOppositeDirection,
   isPerpendicularDirection,
-  vectorToDirection,
   Vector2D,
+  vectorToDirection,
 } from '../src/core';
 
 describe('Direction', () => {

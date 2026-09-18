@@ -1,12 +1,7 @@
-import {
-  Vector2D,
-  Direction,
-  getDirectionVector,
-  getOppositeDirection,
-  Grid,
-  WalkableOptions,
-} from '../core';
-import { GhostState } from './GhostFSM';
+import { Direction, getDirectionVector, getOppositeDirection } from '../core/Direction';
+import type { Grid, WalkableOptions } from '../core/Grid';
+import { Vector2D } from '../core/Vector2D';
+import type { GhostState } from './GhostFSM';
 
 /**
  * Ghost types in the arcade simulation.
@@ -91,7 +86,7 @@ export function chooseNextDirection(
   currentTile: Vector2D,
   currentDirection: Direction,
   targetTile: Vector2D,
-  options?: ChooseDirectionOptions
+  options?: ChooseDirectionOptions,
 ): Direction {
   const allowReverse = options?.allowReverse ?? false;
   const forbiddenReverse =
@@ -140,7 +135,7 @@ export function chooseFrightenedDirection(
   currentTile: Vector2D,
   currentDirection: Direction,
   rng: () => number = Math.random,
-  options?: ChooseDirectionOptions
+  options?: ChooseDirectionOptions,
 ): Direction {
   const allowReverse = options?.allowReverse ?? false;
   const forbiddenReverse =

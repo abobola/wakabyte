@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { SoundManager, AmbientMode } from '../src/audio';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { AmbientMode, SoundManager } from '../src/audio';
 
 /**
  * Mock AudioParam tracking automation curves and value changes.
  */
-export class MockAudioParam {
+class MockAudioParam {
   public value: number;
   public defaultValue: number;
   public minValue: number;
@@ -51,7 +51,7 @@ export class MockAudioParam {
 /**
  * Mock AudioNode base class for signal graph tracking.
  */
-export class MockAudioNode {
+class MockAudioNode {
   public context: MockAudioContext;
   public connectedTo: (MockAudioNode | MockAudioParam)[] = [];
 
@@ -59,12 +59,12 @@ export class MockAudioNode {
     this.context = context;
   }
 
-  public connect(destination: any): any {
+  public connect(destination: MockAudioNode | MockAudioParam): MockAudioNode | MockAudioParam {
     this.connectedTo.push(destination);
     return destination;
   }
 
-  public disconnect(destination?: any): void {
+  public disconnect(destination?: MockAudioNode | MockAudioParam): void {
     if (destination) {
       this.connectedTo = this.connectedTo.filter((dest) => dest !== destination);
     } else {
@@ -76,7 +76,7 @@ export class MockAudioNode {
 /**
  * Mock GainNode tracking volume scaling.
  */
-export class MockGainNode extends MockAudioNode {
+class MockGainNode extends MockAudioNode {
   public gain: MockAudioParam;
 
   constructor(context: MockAudioContext, initialGain = 1) {
@@ -88,7 +88,7 @@ export class MockGainNode extends MockAudioNode {
 /**
  * Mock OscillatorNode tracking waveform synthesis.
  */
-export class MockOscillatorNode extends MockAudioNode {
+class MockOscillatorNode extends MockAudioNode {
   public type: OscillatorType = 'sine';
   public frequency: MockAudioParam;
   public detune: MockAudioParam;
@@ -121,7 +121,7 @@ export class MockOscillatorNode extends MockAudioNode {
 /**
  * Comprehensive Mock AudioContext for headless Web Audio testing.
  */
-export class MockAudioContext {
+class MockAudioContext {
   public state: AudioContextState = 'running';
   public currentTime: number = 0;
   public sampleRate: number = 44100;
@@ -295,7 +295,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
 
       // First chomp (Tone A)
       soundManager.playPellet();
-      expect(mockContext.createdOscillators.length).toBe(initialOscCount + 1);
+      expect(mockContext.createdOscillators).toHaveLength(initialOscCount + 1);
       const oscA = mockContext.createdOscillators[initialOscCount];
       expect(oscA.started).toBe(true);
       expect(oscA.stopped).toBe(true);
@@ -303,7 +303,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
 
       // Second chomp (Tone B)
       soundManager.playPellet();
-      expect(mockContext.createdOscillators.length).toBe(initialOscCount + 2);
+      expect(mockContext.createdOscillators).toHaveLength(initialOscCount + 2);
       const oscB = mockContext.createdOscillators[initialOscCount + 1];
       expect(oscB.started).toBe(true);
       expect(oscB.stopped).toBe(true);
@@ -320,7 +320,9 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
       const chompGain = mockContext.createdGainNodes[initialGains];
       expect(chompGain).toBeDefined();
       expect(chompGain.gain.events.length).toBeGreaterThanOrEqual(2);
-      expect(chompGain.gain.events.some((e) => e.type.includes('Ramp') || e.type === 'setValueAtTime')).toBe(true);
+      expect(
+        chompGain.gain.events.some((e) => e.type.includes('Ramp') || e.type === 'setValueAtTime'),
+      ).toBe(true);
     });
 
     it('resets waka alternation state on resetWaka()', () => {
@@ -467,7 +469,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
           hasEatenGhosts: false,
           isPaused: false,
           isGameOver: false,
-        })
+        }),
       ).toBe(AmbientMode.SIREN);
 
       // Frightened state -> FRIGHTENED
@@ -477,7 +479,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
           hasEatenGhosts: false,
           isPaused: false,
           isGameOver: false,
-        })
+        }),
       ).toBe(AmbientMode.FRIGHTENED);
 
       // Eaten eyes active overrides frightened -> EYES
@@ -487,7 +489,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
           hasEatenGhosts: true,
           isPaused: false,
           isGameOver: false,
-        })
+        }),
       ).toBe(AmbientMode.EYES);
 
       // Paused or Game Over -> NONE
@@ -497,7 +499,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
           hasEatenGhosts: false,
           isPaused: true,
           isGameOver: false,
-        })
+        }),
       ).toBe(AmbientMode.NONE);
 
       expect(
@@ -506,7 +508,7 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
           hasEatenGhosts: false,
           isPaused: false,
           isGameOver: true,
-        })
+        }),
       ).toBe(AmbientMode.NONE);
     });
   });

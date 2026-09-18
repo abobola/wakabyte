@@ -1,5 +1,5 @@
-import { Vector2D, Direction, Grid, TileType } from '../core';
 import { GhostState, GhostType } from '../ai';
+import { Direction, type Grid, TileType, Vector2D } from '../core';
 
 /**
  * Visual styling theme for the arcade Canvas 2D renderer.
@@ -297,8 +297,6 @@ export class CanvasRenderer {
       case Direction.UP:
         baseAngle = (3 * Math.PI) / 2;
         break;
-      case Direction.RIGHT:
-      case Direction.NONE:
       default:
         baseAngle = 0;
         break;
@@ -355,7 +353,11 @@ export class CanvasRenderer {
   /**
    * Resolves ghost body color based on state, flash cycle, and ghost type.
    */
-  private getGhostBodyColor(ghost: RenderableGhost, state: GhostState, animationTick: number): string {
+  private getGhostBodyColor(
+    ghost: RenderableGhost,
+    state: GhostState,
+    animationTick: number,
+  ): string {
     if (state === GhostState.FRIGHTENED) {
       if (ghost.isFlashing) {
         const flashCycle = Math.floor(animationTick * 8) % 2;
@@ -371,7 +373,6 @@ export class CanvasRenderer {
         return this.theme.inkyColor;
       case GhostType.CLYDE:
         return this.theme.clydeColor;
-      case GhostType.BLINKY:
       default:
         return this.theme.blinkyColor;
     }
@@ -386,7 +387,7 @@ export class CanvasRenderer {
     centerY: number,
     radius: number,
     bodyColor: string,
-    animationTick: number
+    animationTick: number,
   ): void {
     ctx.fillStyle = bodyColor;
     ctx.beginPath();
@@ -421,7 +422,7 @@ export class CanvasRenderer {
     ctx: CanvasRenderingContext2D,
     centerX: number,
     centerY: number,
-    radius: number
+    radius: number,
   ): void {
     const eyeRadius = Math.max(1, radius * 0.16);
     ctx.fillStyle = this.theme.frightenedFaceColor;
@@ -445,7 +446,7 @@ export class CanvasRenderer {
     centerX: number,
     centerY: number,
     radius: number,
-    direction?: Direction
+    direction?: Direction,
   ): void {
     const scleraRadius = Math.max(1.5, radius * 0.28);
     const pupilRadius = Math.max(1, radius * 0.14);
@@ -488,11 +489,23 @@ export class CanvasRenderer {
     ctx.fillStyle = this.theme.pupilColor;
 
     ctx.beginPath();
-    ctx.arc(centerX - eyeOffsetX + pupilDx, centerY + eyeOffsetY + pupilDy, pupilRadius, 0, Math.PI * 2);
+    ctx.arc(
+      centerX - eyeOffsetX + pupilDx,
+      centerY + eyeOffsetY + pupilDy,
+      pupilRadius,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(centerX + eyeOffsetX + pupilDx, centerY + eyeOffsetY + pupilDy, pupilRadius, 0, Math.PI * 2);
+    ctx.arc(
+      centerX + eyeOffsetX + pupilDx,
+      centerY + eyeOffsetY + pupilDy,
+      pupilRadius,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
@@ -539,7 +552,7 @@ export class CanvasRenderer {
         livesRadius,
         baseAngle + mouthWedge,
         baseAngle + 2 * Math.PI - mouthWedge,
-        false
+        false,
       );
       ctx.closePath();
       ctx.fill();
@@ -584,7 +597,7 @@ export class CanvasRenderer {
     prev: number,
     curr: number,
     alpha: number,
-    bound?: number
+    bound?: number,
   ): number {
     let delta = curr - prev;
 
@@ -608,7 +621,7 @@ export class CanvasRenderer {
     curr: Vector2D,
     alpha: number,
     grid?: Grid,
-    tileSize?: number
+    tileSize?: number,
   ): Vector2D {
     const clampedAlpha = Math.max(0, Math.min(1, alpha));
     const hasBounds = Boolean(grid && tileSize && tileSize > 0);
@@ -617,7 +630,7 @@ export class CanvasRenderer {
 
     return new Vector2D(
       CanvasRenderer.interpolateAxis(prev.x, curr.x, clampedAlpha, pixelWidth),
-      CanvasRenderer.interpolateAxis(prev.y, curr.y, clampedAlpha, pixelHeight)
+      CanvasRenderer.interpolateAxis(prev.y, curr.y, clampedAlpha, pixelHeight),
     );
   }
 }

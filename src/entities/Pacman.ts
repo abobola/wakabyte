@@ -1,12 +1,12 @@
 import {
-  Vector2D,
+  DEFAULT_INPUT_BUFFER_TIMEOUT_MS,
   Direction,
+  type Grid,
   getDirectionVector,
+  InputBuffer,
   isOppositeDirection,
   isPerpendicularDirection,
-  Grid,
-  InputBuffer,
-  DEFAULT_INPUT_BUFFER_TIMEOUT_MS,
+  Vector2D,
 } from '../core';
 import { getTileLane, resolveEntityPosition } from './movement';
 
@@ -64,7 +64,7 @@ export class Pacman {
       this.inputBuffer = options.inputBuffer;
     } else {
       this.inputBuffer = new InputBuffer(
-        options.inputBufferTimeoutMs ?? DEFAULT_INPUT_BUFFER_TIMEOUT_MS
+        options.inputBufferTimeoutMs ?? DEFAULT_INPUT_BUFFER_TIMEOUT_MS,
       );
     }
 
@@ -212,62 +212,81 @@ export class Pacman {
 
     while (remainingDistance > 0.00001 && iterations < maxIterations) {
       iterations++;
-
-      const desired = this.inputBuffer.peek();
-
-      // Check instant reverse
-      if (desired !== Direction.NONE && isOppositeDirection(desired, this.direction)) {
-        this.direction = desired;
-        this.inputBuffer.consume();
-      }
-
-      if (!this.tryStartMoving()) {
+      const result = this.executeMovementIteration(remainingDistance);
+      remainingDistance = result.remainingDistance;
+      if (!result.shouldContinue) {
         break;
       }
-
-      const currentTile = this.getTile();
-
-      // Check if already at tile center and can turn in desired direction
-      if (this.isAtTileCenter()) {
-        this.tryExecuteBufferedTurn(currentTile);
-      }
-
-      const lane = getTileLane(this.position, this.direction, currentTile, this.tileSize);
-      if (!lane) {
-        this.moving = false;
-        break;
-      }
-
-      // If at/past center and path ahead is blocked, stop at center
-      if (!lane.isBeforeCenter && !this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
-        this.position = lane.makePosition(lane.centerAxisPos);
-        this.moving = false;
-        break;
-      }
-
-      // Clamp movement step by distance to waypoint
-      const stepDistance = Math.min(remainingDistance, lane.distToWaypoint);
-      this.position = lane.advance(stepDistance);
-      remainingDistance -= stepDistance;
-      this.moving = true;
-
-      // If waypoint at center was reached, evaluate turns and wall collisions
-      if (lane.isBeforeCenter && stepDistance >= lane.distToCenter) {
-        this.position = lane.makePosition(lane.centerAxisPos);
-
-        if (this.tryExecuteBufferedTurn(currentTile)) {
-          this.position = this.grid.wrapContinuous(this.position, this.tileSize);
-          continue;
-        }
-
-        if (!this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
-          this.moving = false;
-          break;
-        }
-      }
-
-      this.position = this.grid.wrapContinuous(this.position, this.tileSize);
     }
+  }
+
+  /**
+   * Checks and executes an instant 180-degree reverse if requested in the buffer.
+   */
+  private checkInstantReverse(): void {
+    const desired = this.inputBuffer.peek();
+    if (desired !== Direction.NONE && isOppositeDirection(desired, this.direction)) {
+      this.direction = desired;
+      this.inputBuffer.consume();
+    }
+  }
+
+  /**
+   * Performs a single iteration of movement physics along the current tile lane.
+   */
+  private executeMovementIteration(remainingDistance: number): {
+    remainingDistance: number;
+    shouldContinue: boolean;
+  } {
+    this.checkInstantReverse();
+
+    if (!this.tryStartMoving()) {
+      return { remainingDistance: 0, shouldContinue: false };
+    }
+
+    const currentTile = this.getTile();
+
+    // Check if already at tile center and can turn in desired direction
+    if (this.isAtTileCenter()) {
+      this.tryExecuteBufferedTurn(currentTile);
+    }
+
+    const lane = getTileLane(this.position, this.direction, currentTile, this.tileSize);
+    if (!lane) {
+      this.moving = false;
+      return { remainingDistance: 0, shouldContinue: false };
+    }
+
+    // If at/past center and path ahead is blocked, stop at center
+    if (!lane.isBeforeCenter && !this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
+      this.position = lane.makePosition(lane.centerAxisPos);
+      this.moving = false;
+      return { remainingDistance: 0, shouldContinue: false };
+    }
+
+    // Clamp movement step by distance to waypoint
+    const stepDistance = Math.min(remainingDistance, lane.distToWaypoint);
+    this.position = lane.advance(stepDistance);
+    const newRemainingDistance = remainingDistance - stepDistance;
+    this.moving = true;
+
+    // If waypoint at center was reached, evaluate turns and wall collisions
+    if (lane.isBeforeCenter && stepDistance >= lane.distToCenter) {
+      this.position = lane.makePosition(lane.centerAxisPos);
+
+      if (this.tryExecuteBufferedTurn(currentTile)) {
+        this.position = this.grid.wrapContinuous(this.position, this.tileSize);
+        return { remainingDistance: newRemainingDistance, shouldContinue: true };
+      }
+
+      if (!this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
+        this.moving = false;
+        return { remainingDistance: 0, shouldContinue: false };
+      }
+    }
+
+    this.position = this.grid.wrapContinuous(this.position, this.tileSize);
+    return { remainingDistance: newRemainingDistance, shouldContinue: true };
   }
 
   /**

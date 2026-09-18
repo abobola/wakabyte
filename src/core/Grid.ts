@@ -1,6 +1,6 @@
-import { Vector2D } from './Vector2D';
+import { CHAR_TO_TILE_TYPE, RAW_MAP_DATA, TileType } from '../config/mapData';
 import { Direction, getDirectionVector } from './Direction';
-import { TileType, CHAR_TO_TILE_TYPE, RAW_MAP_DATA } from '../config/mapData';
+import { Vector2D } from './Vector2D';
 
 export { TileType };
 
@@ -22,7 +22,9 @@ export class Grid {
     const rowLength = matrix[0].length;
     for (let y = 0; y < matrix.length; y++) {
       if (matrix[y].length !== rowLength) {
-        throw new Error(`Inconsistent row length at row ${y}: expected ${rowLength}, got ${matrix[y].length}`);
+        throw new Error(
+          `Inconsistent row length at row ${y}: expected ${rowLength}, got ${matrix[y].length}`,
+        );
       }
     }
 
@@ -36,7 +38,7 @@ export class Grid {
    */
   static fromStringArray(
     rows: readonly string[] | string[],
-    charMap: Record<string, TileType> = CHAR_TO_TILE_TYPE
+    charMap: Record<string, TileType> = CHAR_TO_TILE_TYPE,
   ): Grid {
     if (!rows || rows.length === 0) {
       throw new Error('Grid matrix cannot be empty');
@@ -53,7 +55,7 @@ export class Grid {
       const rowStr = rows[y];
       if (rowStr.length !== expectedWidth) {
         throw new Error(
-          `Inconsistent row length at row ${y}: expected ${expectedWidth}, got ${rowStr.length}`
+          `Inconsistent row length at row ${y}: expected ${expectedWidth}, got ${rowStr.length}`,
         );
       }
 
@@ -121,7 +123,7 @@ export class Grid {
   wrapContinuous(
     xOrCoords: number | Vector2D,
     yOrTileSize: number,
-    maybeTileSize?: number
+    maybeTileSize?: number,
   ): Vector2D {
     let x: number;
     let y: number;
@@ -175,7 +177,7 @@ export class Grid {
       typeof xOrCoords === 'number'
         ? this.wrapTile(xOrCoords, maybeY as number)
         : this.wrapTile(xOrCoords);
-    return this.getTileAt(wrapped)!;
+    return this.getTileAt(wrapped) ?? TileType.WALL;
   }
 
   /**
@@ -197,7 +199,7 @@ export class Grid {
   isWalkable(
     xOrCoords: number | Vector2D,
     yOrOptions?: number | WalkableOptions,
-    maybeOptions?: WalkableOptions
+    maybeOptions?: WalkableOptions,
   ): boolean {
     let x: number;
     let y: number;
@@ -227,7 +229,6 @@ export class Grid {
         return options?.allowGate ?? false;
       case TileType.GHOST_HOUSE:
         return options?.allowGhostHouse ?? false;
-      case TileType.WALL:
       default:
         return false;
     }
@@ -241,7 +242,7 @@ export class Grid {
   isWalkableWrapped(
     xOrCoords: number | Vector2D,
     yOrOptions?: number | WalkableOptions,
-    maybeOptions?: WalkableOptions
+    maybeOptions?: WalkableOptions,
   ): boolean {
     if (typeof xOrCoords === 'number') {
       const wrapped = this.wrapTile(xOrCoords, yOrOptions as number);
@@ -260,7 +261,7 @@ export class Grid {
   getWalkableDirections(
     xOrCoords: number | Vector2D,
     yOrOptions?: number | WalkableOptions,
-    maybeOptions?: WalkableOptions
+    maybeOptions?: WalkableOptions,
   ): Direction[] {
     let x: number;
     let y: number;
@@ -276,12 +277,7 @@ export class Grid {
       options = yOrOptions as WalkableOptions | undefined;
     }
 
-    const cardinalDirections = [
-      Direction.UP,
-      Direction.DOWN,
-      Direction.LEFT,
-      Direction.RIGHT,
-    ];
+    const cardinalDirections = [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT];
 
     const walkable: Direction[] = [];
     for (const dir of cardinalDirections) {
@@ -305,7 +301,7 @@ export class Grid {
   isIntersection(
     xOrCoords: number | Vector2D,
     yOrOptions?: number | WalkableOptions,
-    maybeOptions?: WalkableOptions
+    maybeOptions?: WalkableOptions,
   ): boolean {
     let x: number;
     let y: number;

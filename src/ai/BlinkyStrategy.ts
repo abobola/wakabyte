@@ -1,11 +1,11 @@
-import { Vector2D } from '../core';
+import type { Vector2D } from '../core/Vector2D';
 import { GhostState } from './GhostFSM';
 import {
-  GhostStrategy,
-  GhostType,
-  DEFAULT_SCATTER_TARGETS,
   DEFAULT_GHOST_HOUSE_TARGET,
-  TargetingContext,
+  DEFAULT_SCATTER_TARGETS,
+  type GhostStrategy,
+  GhostType,
+  type TargetingContext,
 } from './GhostStrategy';
 
 /**

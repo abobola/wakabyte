@@ -101,7 +101,9 @@ export class SoundManager {
    */
   public ensureContext(): AudioContext | null {
     if (!this.context && typeof window !== 'undefined') {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtxClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioCtxClass) {
         this.context = new AudioCtxClass();
         this.setupAudioGraph();
@@ -339,12 +341,18 @@ export class SoundManager {
    */
   public updateAmbient(mode: AmbientMode): void {
     if (this.currentAmbientMode === mode && this.activeAmbientOsc !== null) return;
-    if (this.currentAmbientMode === mode && (!this.context || this.context.state === 'suspended')) return;
+    if (this.currentAmbientMode === mode && (!this.context || this.context.state === 'suspended'))
+      return;
 
     this.stopAmbient();
     this.currentAmbientMode = mode;
 
-    if (mode === AmbientMode.NONE || !this.context || !this.ambientGain || this.context.state === 'suspended') {
+    if (
+      mode === AmbientMode.NONE ||
+      !this.context ||
+      !this.ambientGain ||
+      this.context.state === 'suspended'
+    ) {
       return;
     }
 
@@ -367,7 +375,7 @@ export class SoundManager {
           lfoGain.gain.setValueAtTime(80, now); // +/- 80Hz
 
           lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency as any);
+          lfoGain.connect(osc.frequency);
           lfo.start(now);
           this.activeAmbientLfo = lfo;
         } catch {
@@ -389,7 +397,7 @@ export class SoundManager {
           lfoGain.gain.setValueAtTime(40, now);
 
           lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency as any);
+          lfoGain.connect(osc.frequency);
           lfo.start(now);
           this.activeAmbientLfo = lfo;
         } catch {
@@ -411,7 +419,7 @@ export class SoundManager {
           lfoGain.gain.setValueAtTime(150, now);
 
           lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency as any);
+          lfoGain.connect(osc.frequency);
           lfo.start(now);
           this.activeAmbientLfo = lfo;
         } catch {
@@ -492,16 +500,20 @@ export class SoundManager {
     startTime: number,
     duration: number,
     peakGain = 1.0,
-    targetGain: GainNode = this.sfxGain!
-  ): GainNode {
-    const ctx = this.context!;
+    targetGain?: GainNode,
+  ): GainNode | null {
+    const ctx = this.context;
+    const destGain = targetGain ?? this.sfxGain;
+    if (!ctx || !destGain) {
+      return null;
+    }
     const noteGain = ctx.createGain();
 
     noteGain.gain.setValueAtTime(peakGain, startTime);
     noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
     osc.connect(noteGain);
-    noteGain.connect(targetGain);
+    noteGain.connect(destGain);
 
     osc.start(startTime);
     osc.stop(startTime + duration);

@@ -1,17 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { GhostState, GhostType, GlobalWaveTimer } from '../src/ai';
 import {
+  CollisionManager,
+  Direction,
+  ENERGIZER_POINTS,
   GameLoop,
   Grid,
-  Vector2D,
-  Direction,
-  TileType,
-  ScoreManager,
-  CollisionManager,
   PELLET_POINTS,
-  ENERGIZER_POINTS,
+  ScoreManager,
+  TileType,
+  Vector2D,
 } from '../src/core';
-import { Pacman, Ghost } from '../src/entities';
-import { GhostType, GlobalWaveTimer, GhostState } from '../src/ai';
+import { Ghost, Pacman } from '../src/entities';
 
 describe('GameLoop Engine & Simulation Coordinator', () => {
   const tileSize = 8;
@@ -31,13 +31,7 @@ describe('GameLoop Engine & Simulation Coordinator', () => {
     // W . W . W
     // W . . . W
     // W W W W W
-    const testMap = [
-      'WWWWW',
-      'W..oW',
-      'W.W.W',
-      'W...W',
-      'WWWWW',
-    ];
+    const testMap = ['WWWWW', 'W..oW', 'W.W.W', 'W...W', 'WWWWW'];
 
     simpleGrid = Grid.fromStringArray(testMap);
     scoreManager = new ScoreManager({ grid: simpleGrid });
@@ -146,7 +140,7 @@ describe('GameLoop Engine & Simulation Coordinator', () => {
       expect(scoreManager.getScore()).toBe(initialScore + PELLET_POINTS);
       expect(onPelletEaten).toHaveBeenCalledWith(
         expect.objectContaining({ x: 1, y: 1 }),
-        PELLET_POINTS
+        PELLET_POINTS,
       );
     });
 
@@ -175,7 +169,7 @@ describe('GameLoop Engine & Simulation Coordinator', () => {
       expect(blinky.getState()).toBe(GhostState.FRIGHTENED);
       expect(onEnergizerEaten).toHaveBeenCalledWith(
         expect.objectContaining({ x: 3, y: 1 }),
-        ENERGIZER_POINTS
+        ENERGIZER_POINTS,
       );
     });
 
@@ -191,7 +185,7 @@ describe('GameLoop Engine & Simulation Coordinator', () => {
           pacmanTile: expect.objectContaining({ x: 2, y: 1 }),
           pacmanDirection: Direction.RIGHT,
           blinkyTile: expect.objectContaining({ x: 3, y: 3 }),
-        })
+        }),
       );
     });
 

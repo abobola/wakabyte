@@ -1,21 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Grid, Vector2D, Direction, CollisionManager, CollisionType } from '../src/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  Ghost,
-  DEFAULT_GHOST_SPEED,
-  DEFAULT_FRIGHTENED_SPEED,
+  BlinkyStrategy,
+  ClydeStrategy,
+  GhostState,
+  GhostType,
+  GlobalWaveTimer,
+  InkyStrategy,
+  PinkyStrategy,
+} from '../src/ai';
+import { CollisionManager, CollisionType, Direction, Grid, Vector2D } from '../src/core';
+import {
   DEFAULT_EATEN_SPEED,
+  DEFAULT_FRIGHTENED_SPEED,
+  DEFAULT_GHOST_SPEED,
+  Ghost,
   Pacman,
 } from '../src/entities';
-import {
-  GhostType,
-  GhostState,
-  GlobalWaveTimer,
-  BlinkyStrategy,
-  PinkyStrategy,
-  InkyStrategy,
-  ClydeStrategy,
-} from '../src/ai';
 
 describe('Ghost Controller Entity', () => {
   let grid: Grid;
@@ -27,13 +27,7 @@ describe('Ghost Controller Entity', () => {
   // Row 2: #.###
   // Row 3: #...#
   // Row 4: #####
-  const simpleMap = [
-    '#####',
-    '#...#',
-    '#.###',
-    '#...#',
-    '#####',
-  ];
+  const simpleMap = ['#####', '#...#', '#.###', '#...#', '#####'];
 
   beforeEach(() => {
     grid = Grid.fromStringArray(simpleMap);
@@ -163,13 +157,7 @@ describe('Ghost Controller Entity', () => {
     // 2: #.###.#
     // 3: #.....#
     // 4: #######
-    const corridorMap = [
-      '#######',
-      '#.....#',
-      '#.###.#',
-      '#.....#',
-      '#######',
-    ];
+    const corridorMap = ['#######', '#.....#', '#.###.#', '#.....#', '#######'];
 
     let testGrid: Grid;
 
@@ -245,7 +233,7 @@ describe('Ghost Controller Entity', () => {
     it('chooses random valid non-reverse direction in FRIGHTENED mode using RNG', () => {
       // Intersection at (1, 1): right and down are walkable. Coming from (1, 2) moving UP.
       // RNG returns 0 -> chooses first candidate
-      let rngValue = 0;
+      const rngValue = 0;
       const waveTimer = new GlobalWaveTimer();
       waveTimer.triggerFrightened(10);
 
@@ -272,12 +260,7 @@ describe('Ghost Controller Entity', () => {
     // 1: #..-..#  (Gate '-' at (3, 1))
     // 2: #.GGG.#  (Ghost House at (3, 2))
     // 3: #######
-    const houseMap = [
-      '#######',
-      '#..-..#',
-      '#.GGG.#',
-      '#######',
-    ];
+    const houseMap = ['#######', '#..-..#', '#.GGG.#', '#######'];
 
     let houseGrid: Grid;
 

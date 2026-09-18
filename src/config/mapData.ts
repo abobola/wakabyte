@@ -12,16 +12,16 @@ export const MAP_HEIGHT = 36;
 
 export const CHAR_TO_TILE_TYPE: Record<string, TileType> = {
   '#': TileType.WALL,
-  'W': TileType.WALL,
+  W: TileType.WALL,
   '.': TileType.PELLET,
-  'o': TileType.ENERGIZER,
-  'O': TileType.ENERGIZER,
+  o: TileType.ENERGIZER,
+  O: TileType.ENERGIZER,
   '*': TileType.ENERGIZER,
   ' ': TileType.EMPTY,
-  '_': TileType.EMPTY,
-  'E': TileType.EMPTY,
-  'G': TileType.GHOST_HOUSE,
-  'H': TileType.GHOST_HOUSE,
+  _: TileType.EMPTY,
+  E: TileType.EMPTY,
+  G: TileType.GHOST_HOUSE,
+  H: TileType.GHOST_HOUSE,
   '-': TileType.GATE,
   '=': TileType.GATE,
 };

@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  ScoreManager,
-  PELLET_POINTS,
+  type ConsumptionResult,
   ENERGIZER_POINTS,
-  GHOST_STREAK_POINTS,
   EXTRA_LIFE_THRESHOLD,
-  ConsumptionResult,
+  GHOST_STREAK_POINTS,
   Grid,
+  PELLET_POINTS,
+  ScoreManager,
   TileType,
   Vector2D,
 } from '../src/core';
@@ -396,9 +396,7 @@ describe('ScoreManager (Phase 5.1)', () => {
     });
 
     it('resets level using a Grid instance for total pellets', () => {
-      const grid = Grid.fromMatrix([
-        [TileType.PELLET, TileType.PELLET, TileType.ENERGIZER],
-      ]);
+      const grid = Grid.fromMatrix([[TileType.PELLET, TileType.PELLET, TileType.ENERGIZER]]);
       const manager = new ScoreManager({ initialScore: 100, totalPellets: 1 });
       manager.eatPellet();
       expect(manager.isLevelCleared()).toBe(true);

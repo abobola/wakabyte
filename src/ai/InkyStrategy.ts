@@ -1,11 +1,12 @@
-import { Vector2D, Direction } from '../core';
+import { Direction } from '../core/Direction';
+import { Vector2D } from '../core/Vector2D';
 import { GhostState } from './GhostFSM';
 import {
-  GhostStrategy,
-  GhostType,
-  DEFAULT_SCATTER_TARGETS,
   DEFAULT_GHOST_HOUSE_TARGET,
-  TargetingContext,
+  DEFAULT_SCATTER_TARGETS,
+  type GhostStrategy,
+  GhostType,
+  type TargetingContext,
 } from './GhostStrategy';
 
 /**
@@ -64,7 +65,6 @@ export class InkyStrategy implements GhostStrategy {
       case Direction.UP:
         // Authentic 1980 arcade overflow quirk: 2 tiles UP and 2 tiles LEFT (-2, -2)
         return new Vector2D(-2, -2);
-      case Direction.NONE:
       default:
         return Vector2D.zero();
     }

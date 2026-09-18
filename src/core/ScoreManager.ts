@@ -1,5 +1,5 @@
 import { Grid, TileType } from './Grid';
-import { Vector2D } from './Vector2D';
+import type { Vector2D } from './Vector2D';
 
 /**
  * Authentic arcade points awarded for eating a normal dot (pellet).
@@ -237,11 +237,7 @@ export class ScoreManager {
    */
   public consumeAt(grid: Grid, coords: Vector2D): ConsumptionResult;
   public consumeAt(grid: Grid, x: number, y: number): ConsumptionResult;
-  public consumeAt(
-    grid: Grid,
-    coordsOrX: Vector2D | number,
-    maybeY?: number
-  ): ConsumptionResult {
+  public consumeAt(grid: Grid, coordsOrX: Vector2D | number, maybeY?: number): ConsumptionResult {
     const x = typeof coordsOrX === 'number' ? coordsOrX : coordsOrX.x;
     const y = typeof coordsOrX === 'number' ? (maybeY as number) : coordsOrX.y;
 

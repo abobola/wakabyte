@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Vector2D, Direction, Grid } from '../src/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  BlinkyStrategy,
+  ClydeStrategy,
+  chooseFrightenedDirection,
+  chooseNextDirection,
+  DEFAULT_GHOST_HOUSE_TARGET,
+  DEFAULT_SCATTER_TARGETS,
   GhostState,
   GhostType,
-  DEFAULT_SCATTER_TARGETS,
-  DEFAULT_GHOST_HOUSE_TARGET,
-  TargetingContext,
-  chooseNextDirection,
-  chooseFrightenedDirection,
-  BlinkyStrategy,
-  PinkyStrategy,
   InkyStrategy,
-  ClydeStrategy,
+  PinkyStrategy,
+  type TargetingContext,
 } from '../src/ai';
+import { Direction, Grid, Vector2D } from '../src/core';
 
 describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
   describe('BlinkyStrategy (Shadow / Red Ghost)', () => {
@@ -282,7 +282,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
 
       expect(clyde.getChaseTarget(context)).toEqual(new Vector2D(10, 10));
       expect(clyde.getTargetTile({ ...context, ghostState: GhostState.CHASE })).toEqual(
-        new Vector2D(10, 10)
+        new Vector2D(10, 10),
       );
     });
 
@@ -296,7 +296,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
 
       expect(clyde.getChaseTarget(context)).toEqual(new Vector2D(0, 35));
       expect(clyde.getTargetTile({ ...context, ghostState: GhostState.CHASE })).toEqual(
-        new Vector2D(0, 35)
+        new Vector2D(0, 35),
       );
     });
 
@@ -356,13 +356,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
       // #.....#
       // #.#####
       // ###
-      const map = [
-        '#######',
-        '#.....#',
-        '#.###.#',
-        '#.....#',
-        '#######',
-      ];
+      const map = ['#######', '#.....#', '#.###.#', '#.....#', '#######'];
       grid = Grid.fromStringArray(map);
     });
 
@@ -401,13 +395,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
       // #####
       //  ###
       //   #
-      const crossMap = [
-        '#####',
-        '##.##',
-        '#...#',
-        '##.##',
-        '#####',
-      ];
+      const crossMap = ['#####', '##.##', '#...#', '##.##', '#####'];
       const crossGrid = Grid.fromStringArray(crossMap);
       const centerTile = new Vector2D(2, 2);
 
@@ -416,12 +404,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
       // distSq( (1,2), (1,1) ) = (1-1)^2 + (2-1)^2 = 1
       // Moving from NONE -> UP has priority over LEFT
       const targetUpLeft = new Vector2D(1, 1);
-      const chosenUpLeft = chooseNextDirection(
-        crossGrid,
-        centerTile,
-        Direction.NONE,
-        targetUpLeft
-      );
+      const chosenUpLeft = chooseNextDirection(crossGrid, centerTile, Direction.NONE, targetUpLeft);
       expect(chosenUpLeft).toBe(Direction.UP);
 
       // 2. Tie between LEFT (1, 2) and DOWN (2, 3) when target is at (1, 3)
@@ -434,7 +417,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
         crossGrid,
         centerTile,
         Direction.NONE,
-        targetLeftDown
+        targetLeftDown,
       );
       expect(chosenLeftDown).toBe(Direction.LEFT);
 
@@ -447,7 +430,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
         crossGrid,
         centerTile,
         Direction.NONE,
-        targetDownRight
+        targetDownRight,
       );
       expect(chosenDownRight).toBe(Direction.DOWN);
     });
@@ -481,12 +464,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
       // ###
       // #.#
       // #.#
-      const deadEndMap = [
-        '###',
-        '#.#',
-        '#.#',
-        '###',
-      ];
+      const deadEndMap = ['###', '#.#', '#.#', '###'];
       const deadEndGrid = Grid.fromStringArray(deadEndMap);
 
       // Ghost is at (1, 1), moving UP into the top wall (1, 0)
@@ -495,7 +473,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
         deadEndGrid,
         new Vector2D(1, 1),
         Direction.UP,
-        new Vector2D(1, 0)
+        new Vector2D(1, 0),
       );
       expect(chosen).toBe(Direction.DOWN);
     });
@@ -510,11 +488,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
 
     it('handles tunnel screen-edge wrapping paths seamlessly', () => {
       // Tunnel row with empty wrap-around
-      const tunnelMap = [
-        '###',
-        '   ',
-        '###',
-      ];
+      const tunnelMap = ['###', '   ', '###'];
       const tunnelGrid = Grid.fromStringArray(tunnelMap);
 
       // Ghost at (0, 1), moving LEFT towards tunnel wrap
@@ -523,7 +497,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
         tunnelGrid,
         new Vector2D(0, 1),
         Direction.LEFT,
-        new Vector2D(2, 1)
+        new Vector2D(2, 1),
       );
       expect(chosen).toBe(Direction.LEFT);
     });
@@ -531,13 +505,7 @@ describe('Ghost Targeting Strategies & AI Pathfinding (Phase 4.2)', () => {
     describe('chooseFrightenedDirection', () => {
       it('selects pseudorandom direction among walkable non-reverse paths using deterministic RNG', () => {
         // Cross intersection with UP, LEFT, DOWN, RIGHT walkable
-        const crossMap = [
-          '#####',
-          '##.##',
-          '#...#',
-          '##.##',
-          '#####',
-        ];
+        const crossMap = ['#####', '##.##', '#...#', '##.##', '#####'];
         const crossGrid = Grid.fromStringArray(crossMap);
         const center = new Vector2D(2, 2);
 

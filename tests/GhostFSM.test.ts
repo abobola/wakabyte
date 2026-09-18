@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  DEFAULT_FRIGHTENED_DURATION,
+  DEFAULT_WAVE_SCHEDULE,
+  GhostFSM,
   GhostState,
   GlobalWaveTimer,
-  GhostFSM,
-  DEFAULT_WAVE_SCHEDULE,
-  DEFAULT_FRIGHTENED_DURATION,
   type WavePhase,
 } from '../src/ai';
 
@@ -373,7 +373,9 @@ describe('Ghost State & Global Wave Timer (Phase 4.1)', () => {
 
       // Energizer eaten -> all become FRIGHTENED and receive reverse signal
       waveTimer.triggerFrightened();
-      [blinky, pinky, inky, clyde].forEach((ghost) => ghost.update(0));
+      [blinky, pinky, inky, clyde].forEach((ghost) => {
+        ghost.update(0);
+      });
 
       expect(blinky.getState()).toBe(GhostState.FRIGHTENED);
       expect(pinky.getState()).toBe(GhostState.FRIGHTENED);
@@ -389,7 +391,9 @@ describe('Ghost State & Global Wave Timer (Phase 4.1)', () => {
 
       // Frightened expires
       waveTimer.update(DEFAULT_FRIGHTENED_DURATION + 0.1);
-      [blinky, pinky, inky, clyde].forEach((ghost) => ghost.update(0));
+      [blinky, pinky, inky, clyde].forEach((ghost) => {
+        ghost.update(0);
+      });
 
       // Blinky is still returning to house (EATEN); others return to SCATTER
       expect(blinky.getState()).toBe(GhostState.EATEN);
