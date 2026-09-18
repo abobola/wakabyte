@@ -122,7 +122,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
     - Reversal of ghost direction on mode transitions.
   - **Deliverable:** Deterministic FSM managing global game phases.
 
-- [ ] **4.2 Ghost Targeting Strategies (`src/ai/*Strategy.ts`)**
+- [x] **4.2 Ghost Targeting Strategies (`src/ai/*Strategy.ts`)**
   - **Tests (`tests/GhostAI.test.ts`):**
     - **Blinky (Shadow):** Direct Euclidean/Manhattan pursuit targeting Pacman's current tile.
     - **Pinky (Speedy):** Predictive targeting 4 tiles ahead of Pacman (including authentic original arcade Up+Left overflow quirk).
