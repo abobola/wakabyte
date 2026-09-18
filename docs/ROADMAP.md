@@ -191,9 +191,11 @@ Phase 7: Quality Tooling, CI/CD & Static Edge Hosting
   - Run Vitest unit tests in CI (`npm run test:run`).
   - Build static distribution bundle (`npm run build`).
 
-- [ ] **7.3 Zero-Cost Static Edge Deployment**
-  - Automated deployment of `dist/` to **Cloudflare Pages** / **Vercel**.
-  - Custom domain routing configuration.
+- [x] **7.3 Zero-Cost Static Edge Deployment**
+  - Automated deployment of `dist/` to **GitHub Pages** via GitHub Actions.
+  - Portable relative base paths (`base: './'`) for subpaths and apex domains.
+  - Multi-platform edge configurations (`vercel.json`, Cloudflare Pages).
+  - Custom domain routing and deployment guide (`docs/DEPLOYMENT.md`).
 
 ---
 

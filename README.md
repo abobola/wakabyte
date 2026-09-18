@@ -146,6 +146,7 @@ wakabyte/
 │   ├── CanvasRenderer.test.ts
 │   └── SoundManager.test.ts
 ├── docs/                      # Architecture Decision Records & Roadmaps
+│   ├── DEPLOYMENT.md          # Static edge CDN deployment & custom domain guide
 │   ├── ROADMAP.md
 │   └── adr/
 ├── biome.json                 # Biome formatting & lint configuration
@@ -153,6 +154,7 @@ wakabyte/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
+├── vercel.json                # Vercel edge caching & routing configuration
 └── vite.config.ts
 ```
 
@@ -220,11 +222,13 @@ Wakabyte strictly follows a **Test-Driven Development (TDD)** workflow:
 
 ## 🚢 Deployment
 
-Wakabyte is designed to deploy seamlessly to modern Edge CDN platforms with zero ongoing server costs:
+Wakabyte is designed to deploy seamlessly to modern Edge CDN platforms with zero ongoing server costs ($0.00/mo):
 
-- **Cloudflare Pages:** Connect the repository for automatic preview builds and edge deployment.
-- **Vercel / Netlify:** Import the Git repo; framework preset auto-detects `Vite`.
-- **GitHub Pages:** Automated deployment via GitHub Actions on every push to `main`.
+- **GitHub Pages:** Automated deployment via GitHub Actions on every verified push to `main`.
+- **Cloudflare Pages:** Connect the repository or deploy with Wrangler for global Anycast edge distribution.
+- **Vercel:** Import the Git repo or deploy via Vercel CLI with optimized asset caching via `vercel.json`.
+
+📖 For complete platform setup, DNS record mapping, and custom domain instructions, see the [Zero-Cost Edge Deployment Guide](docs/DEPLOYMENT.md).
 
 ---
 
