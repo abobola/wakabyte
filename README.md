@@ -2,9 +2,12 @@
 
 > **Deterministic 2D arcade engine & authentic Ghost AI state machine built in TypeScript and HTML5 Canvas using Test-Driven Development (TDD).**
 
+[![CI](https://github.com/abobola/wakabyte/actions/workflows/ci.yml/badge.svg)](https://github.com/abobola/wakabyte/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev/)
 [![Vitest](https://img.shields.io/badge/Tested%20with-Vitest-729B1B.svg?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![Biome](https://img.shields.io/badge/Linted%20with-Biome-60a5fa.svg?style=flat-square&logo=biome)](https://biomejs.dev/)
+[![ESLint](https://img.shields.io/badge/ESLint-SonarJS-4b32c3.svg?style=flat-square&logo=eslint)](https://eslint.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20Decoupled-success.svg?style=flat-square)](#architecture--design-principles)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
@@ -91,6 +94,9 @@ Each ghost operates on a distinct targeting strategy determined by global and lo
 
 ```
 wakabyte/
+├── .github/
+│   └── workflows/
+│       └── ci.yml             # GitHub Actions automated CI pipeline
 ├── src/
 │   ├── core/                  # Pure math & deterministic game logic (zero DOM dependencies)
 │   │   ├── Vector2D.ts        # 2D vector arithmetic & Manhattan distance
@@ -122,8 +128,9 @@ wakabyte/
 │   │   └── index.ts           # Audio barrel export
 │   ├── config/                # Map definitions & constants
 │   │   └── mapData.ts         # Authentic 28x36 arcade tile matrix
+│   ├── style.css              # Arcade CRT styling & responsive viewport
 │   └── main.ts                # Application entrypoint & browser render loop
-├── tests/                     # 14 automated Vitest test suites (310 passing tests)
+├── tests/                     # 14 automated Vitest test suites (312 passing tests)
 │   ├── Vector2D.test.ts
 │   ├── Direction.test.ts
 │   ├── Grid.test.ts
@@ -141,6 +148,8 @@ wakabyte/
 ├── docs/                      # Architecture Decision Records & Roadmaps
 │   ├── ROADMAP.md
 │   └── adr/
+├── biome.json                 # Biome formatting & lint configuration
+├── eslint.config.js           # ESLint v9 flat config with SonarJS rules
 ├── index.html
 ├── package.json
 ├── tsconfig.json
@@ -173,8 +182,20 @@ npm run dev
 # Run Vitest unit test suite (watch mode)
 npm run test
 
+# Run Vitest unit tests once (CI mode)
+npm run test:run
+
 # Run tests with coverage report
 npm run test:coverage
+
+# Run static analysis (Biome + ESLint with SonarJS)
+npm run lint
+
+# Auto-fix linting & format errors
+npm run lint:fix
+
+# Format source files with Biome
+npm run format
 
 # Perform TypeScript type-checking
 npm run typecheck
