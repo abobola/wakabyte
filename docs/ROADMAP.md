@@ -185,7 +185,7 @@ Phase 7: Quality Tooling, CI/CD & Static Edge Hosting
   - Setup Biome / formatting rules for zero-friction linting & code formatting.
   - Add `npm run lint` and `npm run lint:fix` npm scripts.
 
-- [ ] **7.2 GitHub Actions Workflow (`.github/workflows/ci.yml`)**
+- [x] **7.2 GitHub Actions Workflow (`.github/workflows/ci.yml`)**
   - Run linter checks (`npm run lint`).
   - Run type checks (`npm run typecheck`).
   - Run Vitest unit tests in CI (`npm run test:run`).
