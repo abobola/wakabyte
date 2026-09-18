@@ -143,7 +143,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
     - Consecutive ghost consumption point streak ($200 \rightarrow 400 \rightarrow 800 \rightarrow 1600\text{ pts}$).
   - **Deliverable:** Centralized score and objective manager.
 
-- [ ] **5.2 Entity Collision System (`src/core/Collision.ts`)**
+- [x] **5.2 Entity Collision System (`src/core/Collision.ts`)**
   - **Tests (`tests/Collision.test.ts`):**
     - Pacman vs. Ghost proximity checks.
     - Normal state collision: Pacman loses a life, resets entity starting positions.

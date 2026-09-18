@@ -3,3 +3,4 @@ export * from './Direction';
 export * from './Grid';
 export * from './InputBuffer';
 export * from './ScoreManager';
+export * from './Collision';
