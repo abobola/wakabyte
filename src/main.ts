@@ -1,5 +1,7 @@
 import { Direction, GameLoop } from './core';
+import { GhostState } from './ai';
 import { CanvasRenderer, RenderableGhost } from './render';
+import { SoundManager } from './audio';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
 
@@ -10,14 +12,32 @@ if (!canvas) {
 const SCALE = 2;
 const TILE_SIZE = 8;
 
+const soundManager = new SoundManager();
 const renderer = new CanvasRenderer({ canvas, scale: SCALE, tileSize: TILE_SIZE });
-const gameLoop = GameLoop.createDefault({ tileSize: TILE_SIZE, highScore: 10000 });
+
+const gameLoop = GameLoop.createDefault({
+  tileSize: TILE_SIZE,
+  highScore: 10000,
+  onPelletEaten: () => soundManager.playPellet(),
+  onEnergizerEaten: () => soundManager.playEnergizer(),
+  onGhostEaten: () => soundManager.playGhostEaten(),
+  onPacmanDeath: () => soundManager.playDeath(),
+  onLevelCleared: () => soundManager.playLevelClear(),
+});
+
 const pacman = gameLoop.getPacman();
 const ghosts = gameLoop.getGhosts();
 const grid = gameLoop.getGrid();
 const waveTimer = gameLoop.getWaveTimer();
 const scoreManager = gameLoop.getScoreManager();
 const collisionManager = gameLoop.getCollisionManager();
+
+// Unlock Web Audio context on first user interaction to comply with browser autoplay policies
+const unlockAudio = (): void => {
+  void soundManager.resume();
+};
+window.addEventListener('keydown', unlockAudio, { once: true });
+window.addEventListener('click', unlockAudio, { once: true });
 
 // Keyboard input binding for responsive player controls
 window.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -47,6 +67,10 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
       gameLoop.togglePause();
       event.preventDefault();
       break;
+    case 'KeyM':
+      soundManager.toggleMute();
+      event.preventDefault();
+      break;
     default:
       break;
   }
@@ -61,7 +85,18 @@ function frameStep(currentTimestamp: number): void {
   // 1. Advance simulation step
   gameLoop.update(deltaSeconds);
 
-  // 2. Map renderable ghost visual states
+  // 2. Manage continuous ambient procedural audio state
+  const isFrightened = waveTimer.isFrightened();
+  const hasEatenGhosts = ghosts.some((g) => g.getState() === GhostState.EATEN);
+  const ambientMode = SoundManager.resolveAmbientMode({
+    isFrightened,
+    hasEatenGhosts,
+    isPaused: gameLoop.isPaused(),
+    isGameOver: collisionManager.isGameOver(),
+  });
+  soundManager.updateAmbient(ambientMode);
+
+  // 3. Map renderable ghost visual states
   const isFlashing = waveTimer.isFrightenedFlashing();
   const renderableGhosts: RenderableGhost[] = ghosts.map((ghost) => ({
     type: ghost.getType(),
@@ -71,7 +106,7 @@ function frameStep(currentTimestamp: number): void {
     isFlashing,
   }));
 
-  // 3. Render composite frame
+  // 4. Render composite frame
   renderer.render({
     grid,
     pacman: {
@@ -101,4 +136,4 @@ function frameStep(currentTimestamp: number): void {
 
 requestAnimationFrame(frameStep);
 
-console.log('Wakabyte engine initialized with decoupled GameLoop simulation.');
+console.log('Wakabyte engine initialized with procedural Web Audio synthesizer.');

@@ -117,10 +117,13 @@ wakabyte/
 │   ├── render/                # HTML5 Canvas presentation layer
 │   │   ├── CanvasRenderer.ts  # Tilemap rasterization, sprite rendering & arcade HUD
 │   │   └── index.ts           # Render barrel export
+│   ├── audio/                 # Procedural Web Audio synthesis
+│   │   ├── SoundManager.ts    # Oscillator-based 8-bit sound effects & ambient siren FSM
+│   │   └── index.ts           # Audio barrel export
 │   ├── config/                # Map definitions & constants
 │   │   └── mapData.ts         # Authentic 28x36 arcade tile matrix
 │   └── main.ts                # Application entrypoint & browser render loop
-├── tests/                     # 13 automated Vitest test suites (287 passing tests)
+├── tests/                     # 14 automated Vitest test suites (310 passing tests)
 │   ├── Vector2D.test.ts
 │   ├── Direction.test.ts
 │   ├── Grid.test.ts
@@ -133,7 +136,8 @@ wakabyte/
 │   ├── GhostAI.test.ts
 │   ├── movement.test.ts
 │   ├── GameLoop.test.ts
-│   └── CanvasRenderer.test.ts
+│   ├── CanvasRenderer.test.ts
+│   └── SoundManager.test.ts
 ├── docs/                      # Architecture Decision Records & Roadmaps
 │   ├── ROADMAP.md
 │   └── adr/

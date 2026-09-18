@@ -166,9 +166,13 @@ Phase 7: Quality Tooling, CI/CD & Static Edge Hosting
     - Full composite frame render pipeline.
   - **Deliverable:** `CanvasRenderer` presentation module and unified exports in `src/render/index.ts`.
 
-- [ ] **6.2 Procedural Web Audio Synthesizer (`src/audio/SoundManager.ts`)**
-  - Oscillator-based 8-bit sound effects (waka-waka chime, siren, energizer hum, ghost eaten jingle, death sound).
-  - Zero external MP3/WAV asset dependencies.
+- [x] **6.2 Procedural Web Audio Synthesizer (`src/audio/SoundManager.ts`)**
+  - **Tests (`tests/SoundManager.test.ts`):**
+    - Oscillator-based 8-bit sound effects (waka-waka chime, siren, energizer hum, ghost eaten jingle, death sound).
+    - Ambient siren state management (normal siren, frightened hum, eyes return siren).
+    - Volume attenuation, muting, and Web Audio context resume/unlock handling.
+    - Zero external MP3/WAV asset dependencies.
+  - **Deliverable:** `SoundManager` procedural synthesizer module and unified exports in `src/audio/index.ts`.
 
 ---
 
