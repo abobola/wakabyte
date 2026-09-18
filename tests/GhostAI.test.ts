@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Vector2D } from '../src/core/Vector2D';
-import { Direction } from '../src/core/Direction';
-import { Grid } from '../src/core/Grid';
+import { Vector2D, Direction, Grid } from '../src/core';
 import {
   GhostState,
   GhostType,

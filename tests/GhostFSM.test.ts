@@ -5,8 +5,8 @@ import {
   GhostFSM,
   DEFAULT_WAVE_SCHEDULE,
   DEFAULT_FRIGHTENED_DURATION,
-  WavePhase,
-} from '../src/ai/GhostFSM';
+  type WavePhase,
+} from '../src/ai';
 
 describe('Ghost State & Global Wave Timer (Phase 4.1)', () => {
   describe('GlobalWaveTimer - Wave Scheduling & Timed Transitions', () => {

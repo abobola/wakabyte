@@ -1,5 +1,4 @@
-import { Vector2D } from '../core/Vector2D';
-import { Direction } from '../core/Direction';
+import { Vector2D, Direction } from '../core';
 import { GhostState } from './GhostFSM';
 import {
   GhostStrategy,

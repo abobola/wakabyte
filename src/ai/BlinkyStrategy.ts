@@ -1,4 +1,4 @@
-import { Vector2D } from '../core/Vector2D';
+import { Vector2D } from '../core';
 import { GhostState } from './GhostFSM';
 import {
   GhostStrategy,

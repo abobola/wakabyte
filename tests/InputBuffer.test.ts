@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Direction } from '../src/core/Direction';
-import { InputBuffer, DEFAULT_INPUT_BUFFER_TIMEOUT_MS } from '../src/core/InputBuffer';
+import { Direction, InputBuffer, DEFAULT_INPUT_BUFFER_TIMEOUT_MS } from '../src/core';
 
 describe('InputBuffer', () => {
   let buffer: InputBuffer;

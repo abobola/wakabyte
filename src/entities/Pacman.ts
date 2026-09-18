@@ -1,12 +1,14 @@
-import { Vector2D } from '../core/Vector2D';
 import {
+  Vector2D,
   Direction,
   getDirectionVector,
   isOppositeDirection,
   isPerpendicularDirection,
-} from '../core/Direction';
-import { Grid } from '../core/Grid';
-import { InputBuffer, DEFAULT_INPUT_BUFFER_TIMEOUT_MS } from '../core/InputBuffer';
+  Grid,
+  InputBuffer,
+  DEFAULT_INPUT_BUFFER_TIMEOUT_MS,
+} from '../core';
+import { getTileLane, resolveEntityPosition } from './movement';
 
 /**
  * Default movement speed in pixels per second (approx. 10–11 arcade tiles per second).
@@ -42,10 +44,12 @@ export interface PacmanResetOptions {
  */
 export class Pacman {
   private readonly grid: Grid;
+  private readonly tileSize: number;
+  private speed: number;
+  private readonly initialPosition: Vector2D;
+  private readonly initialDirection: Direction;
   private position: Vector2D;
   private direction: Direction;
-  private speed: number;
-  private readonly tileSize: number;
   private readonly inputBuffer: InputBuffer;
   private moving: boolean = false;
 
@@ -54,6 +58,7 @@ export class Pacman {
     this.tileSize = options.tileSize ?? DEFAULT_TILE_SIZE;
     this.speed = options.speed ?? DEFAULT_PACMAN_SPEED;
     this.direction = options.direction ?? Direction.NONE;
+    this.initialDirection = this.direction;
 
     if (options.inputBuffer) {
       this.inputBuffer = options.inputBuffer;
@@ -63,13 +68,8 @@ export class Pacman {
       );
     }
 
-    if (options.position) {
-      this.position = options.position.clone();
-    } else if (options.tile) {
-      this.position = Vector2D.tileCenter(options.tile.x, options.tile.y, this.tileSize);
-    } else {
-      this.position = Vector2D.tileCenter(0, 0, this.tileSize);
-    }
+    this.position = resolveEntityPosition(options, this.tileSize);
+    this.initialPosition = this.position.clone();
 
     if (this.direction !== Direction.NONE && this.speed > 0) {
       this.moving = true;
@@ -232,53 +232,35 @@ export class Pacman {
         this.tryExecuteBufferedTurn(currentTile);
       }
 
-      const dirVec = getDirectionVector(this.direction);
-      if (dirVec.x === 0 && dirVec.y === 0) {
+      const lane = getTileLane(this.position, this.direction, currentTile, this.tileSize);
+      if (!lane) {
         this.moving = false;
         break;
       }
-
-      const center = Vector2D.tileCenter(currentTile.x, currentTile.y, this.tileSize);
-      const isXAxis = dirVec.x !== 0;
-      const currentAxisPos = isXAxis ? this.position.x : this.position.y;
-      const centerAxisPos = isXAxis ? center.x : center.y;
-      const stepSign = isXAxis ? dirVec.x : dirVec.y;
-      const fixedPos = isXAxis ? center.y : center.x;
-
-      const makePosition = (axisPos: number): Vector2D =>
-        isXAxis ? new Vector2D(axisPos, fixedPos) : new Vector2D(fixedPos, axisPos);
-
-      const distToCenter = (centerAxisPos - currentAxisPos) * stepSign;
-      const isBeforeCenter = distToCenter > 0.00001;
 
       // If at/past center and path ahead is blocked, stop at center
-      if (!isBeforeCenter && !this.grid.isWalkableWrapped(currentTile.add(dirVec))) {
-        this.position = makePosition(centerAxisPos);
+      if (!lane.isBeforeCenter && !this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
+        this.position = lane.makePosition(lane.centerAxisPos);
         this.moving = false;
         break;
       }
 
-      // 1D Waypoint distance calculation: waypoint is either current tile center or next tile center
-      const distToWaypoint = isBeforeCenter
-        ? distToCenter
-        : (centerAxisPos + stepSign * this.tileSize - currentAxisPos) * stepSign;
-
       // Clamp movement step by distance to waypoint
-      const stepDistance = Math.min(remainingDistance, distToWaypoint);
-      this.position = makePosition(currentAxisPos + stepSign * stepDistance);
+      const stepDistance = Math.min(remainingDistance, lane.distToWaypoint);
+      this.position = lane.advance(stepDistance);
       remainingDistance -= stepDistance;
       this.moving = true;
 
       // If waypoint at center was reached, evaluate turns and wall collisions
-      if (isBeforeCenter && stepDistance >= distToCenter) {
-        this.position = makePosition(centerAxisPos);
+      if (lane.isBeforeCenter && stepDistance >= lane.distToCenter) {
+        this.position = lane.makePosition(lane.centerAxisPos);
 
         if (this.tryExecuteBufferedTurn(currentTile)) {
           this.position = this.grid.wrapContinuous(this.position, this.tileSize);
           continue;
         }
 
-        if (!this.grid.isWalkableWrapped(currentTile.add(dirVec))) {
+        if (!this.grid.isWalkableWrapped(currentTile.add(lane.dirVec))) {
           this.moving = false;
           break;
         }
@@ -358,15 +340,23 @@ export class Pacman {
   }
 
   /**
+   * Sets current active movement direction directly without buffering.
+   */
+  public setDirection(direction: Direction): void {
+    this.direction = direction;
+    this.moving = direction !== Direction.NONE && this.speed > 0;
+  }
+
+  /**
    * Resets Pacman position, direction, and clears the input buffer.
    */
   public reset(options?: PacmanResetOptions): void {
-    if (options?.position) {
-      this.position = options.position.clone();
-    } else if (options?.tile) {
-      this.position = Vector2D.tileCenter(options.tile.x, options.tile.y, this.tileSize);
+    if (options?.position || options?.tile) {
+      this.position = resolveEntityPosition(options, this.tileSize);
+    } else {
+      this.position = this.initialPosition.clone();
     }
-    this.direction = options?.direction ?? Direction.NONE;
+    this.direction = options?.direction ?? this.initialDirection;
     this.inputBuffer.clear();
     this.moving = this.direction !== Direction.NONE && this.speed > 0;
   }

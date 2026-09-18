@@ -6,8 +6,8 @@ import {
   isOppositeDirection,
   isPerpendicularDirection,
   vectorToDirection,
-} from '../src/core/Direction';
-import { Vector2D } from '../src/core/Vector2D';
+  Vector2D,
+} from '../src/core';
 
 describe('Direction', () => {
   describe('enum values', () => {

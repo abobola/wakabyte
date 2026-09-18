@@ -1,6 +1,11 @@
-import { Vector2D } from '../core/Vector2D';
-import { Direction, getDirectionVector, getOppositeDirection } from '../core/Direction';
-import { Grid, WalkableOptions } from '../core/Grid';
+import {
+  Vector2D,
+  Direction,
+  getDirectionVector,
+  getOppositeDirection,
+  Grid,
+  WalkableOptions,
+} from '../core';
 import { GhostState } from './GhostFSM';
 
 /**

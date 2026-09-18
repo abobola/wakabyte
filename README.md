@@ -96,36 +96,47 @@ wakabyte/
 │   │   ├── Vector2D.ts        # 2D vector arithmetic & Manhattan distance
 │   │   ├── Direction.ts       # Cardinal directions & rotation utilities
 │   │   ├── Grid.ts            # Tilemap parsing, coordinate transforms & boundaries
-│   │   ├── Collision.ts       # Bounding-box and tile intersection checks
-│   │   └── GameLoop.ts        # Fixed-timestep simulation runner
-│   ├── entities/              # Game actors
-│   │   ├── Entity.ts          # Base entity class
-│   │   ├── Pacman.ts          # Player controller & input buffer
-│   │   └── Ghost.ts           # Ghost movement & state coordinator
+│   │   ├── InputBuffer.ts     # Queued direction buffer with TTL & cornering
+│   │   ├── ScoreManager.ts    # Score tracking, ghost multipliers & high score persistence
+│   │   ├── Collision.ts       # Proximity checks, life tracking & interaction resolution
+│   │   ├── GameLoop.ts        # Deterministic simulation coordinator & game loop
+│   │   └── index.ts           # Core domain barrel export
+│   ├── entities/              # Game actors & kinematics
+│   │   ├── Pacman.ts          # Player controller & continuous grid movement
+│   │   ├── Ghost.ts           # Ghost movement, AI steering & house revival
+│   │   ├── movement.ts        # Shared 1D tile lane geometry & position resolution
+│   │   └── index.ts           # Entities barrel export
 │   ├── ai/                    # Ghost targeting algorithms & state machines
-│   │   ├── GhostFSM.ts        # Global Wave & local ghost state machine
+│   │   ├── GhostFSM.ts        # Timed Scatter/Chase wave cycles & Frightened/Eaten states
+│   │   ├── GhostStrategy.ts   # Base targeting strategy contracts
 │   │   ├── BlinkyStrategy.ts  # Direct pursuit
-│   │   ├── PinkyStrategy.ts   # 4-tile offset ambush
+│   │   ├── PinkyStrategy.ts   # 4-tile ambush offset
 │   │   ├── InkyStrategy.ts    # Dual-vector reflection
-│   │   └── ClydeStrategy.ts   # Proximity threshold retreat
-│   ├── render/                # HTML5 Canvas rendering layer
-│   │   ├── CanvasRenderer.ts  # Canvas drawing, sprites & animations
-│   │   └── HUD.ts             # Score, high score & lives display
-│   ├── audio/                 # Web Audio API 8-bit sound synthesizers
-│   │   └── SoundManager.ts
-│   ├── config/                # Game constants, map matrices & timings
-│   │   ├── constants.ts
-│   │   └── mapData.ts
-│   └── main.ts                # Application entrypoint & dependency wiring
-├── tests/                     # Automated Vitest test suite
+│   │   ├── ClydeStrategy.ts   # Proximity-based retreat
+│   │   └── index.ts           # AI barrel export
+│   ├── render/                # HTML5 Canvas presentation layer
+│   │   ├── CanvasRenderer.ts  # Tilemap rasterization, sprite rendering & arcade HUD
+│   │   └── index.ts           # Render barrel export
+│   ├── config/                # Map definitions & constants
+│   │   └── mapData.ts         # Authentic 28x36 arcade tile matrix
+│   └── main.ts                # Application entrypoint & browser render loop
+├── tests/                     # 13 automated Vitest test suites (287 passing tests)
 │   ├── Vector2D.test.ts
+│   ├── Direction.test.ts
 │   ├── Grid.test.ts
+│   ├── InputBuffer.test.ts
+│   ├── ScoreManager.test.ts
+│   ├── Collision.test.ts
 │   ├── Pacman.test.ts
+│   ├── Ghost.test.ts
+│   ├── GhostFSM.test.ts
 │   ├── GhostAI.test.ts
-│   └── Collision.test.ts
-├── .github/
-│   └── workflows/
-│       └── ci.yml             # Automated lint, typecheck & test pipeline
+│   ├── movement.test.ts
+│   ├── GameLoop.test.ts
+│   └── CanvasRenderer.test.ts
+├── docs/                      # Architecture Decision Records & Roadmaps
+│   ├── ROADMAP.md
+│   └── adr/
 ├── index.html
 ├── package.json
 ├── tsconfig.json

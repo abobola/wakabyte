@@ -12,7 +12,7 @@ import {
   type PacmanEntity,
 } from '../src/core';
 import { GhostFSM, GhostState } from '../src/ai';
-import { Pacman } from '../src/entities/Pacman';
+import { Pacman } from '../src/entities';
 
 describe('Entity Collision System (Phase 5.2)', () => {
   describe('checkProximity Math Utility', () => {
@@ -135,9 +135,6 @@ describe('Entity Collision System (Phase 5.2)', () => {
       let currentState = state;
       return {
         getPosition: () => currentPos,
-        setPosition: (pos: Vector2D) => {
-          currentPos = pos.clone();
-        },
         getState: () => currentState,
         eat: vi.fn(() => {
           currentState = GhostState.EATEN;
@@ -155,9 +152,6 @@ describe('Entity Collision System (Phase 5.2)', () => {
       let currentPos = position.clone();
       return {
         getPosition: () => currentPos,
-        setPosition: (pos: Vector2D) => {
-          currentPos = pos.clone();
-        },
         reset: vi.fn((pos?: Vector2D) => {
           currentPos = (pos ?? spawnPosition).clone();
         }),
@@ -355,9 +349,6 @@ describe('Entity Collision System (Phase 5.2)', () => {
       let ghostPos = Vector2D.tileCenter(1, 1, 8);
       const ghost: GhostEntity = {
         getPosition: () => ghostPos,
-        setPosition: (pos: Vector2D) => {
-          ghostPos = pos;
-        },
         getState: () => fsm.getState(),
         eat: () => fsm.eat(),
       };

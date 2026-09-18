@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Pacman, DEFAULT_PACMAN_SPEED, DEFAULT_TILE_SIZE } from '../src/entities/Pacman';
-import { Grid } from '../src/core/Grid';
-import { Vector2D } from '../src/core/Vector2D';
-import { Direction } from '../src/core/Direction';
-import { InputBuffer } from '../src/core/InputBuffer';
+import { Grid, Vector2D, Direction, InputBuffer } from '../src/core';
+import { Pacman, DEFAULT_PACMAN_SPEED, DEFAULT_TILE_SIZE } from '../src/entities';
 
 describe('Pacman Controller', () => {
   let grid: Grid;

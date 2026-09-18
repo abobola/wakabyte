@@ -1,7 +1,4 @@
-import { Grid, Vector2D, Direction, TileType, ScoreManager } from './core';
-import { Pacman } from './entities/Pacman';
-import { GhostType, GhostState } from './ai';
-import { RAW_MAP_DATA } from './config/mapData';
+import { Direction, GameLoop } from './core';
 import { CanvasRenderer, RenderableGhost } from './render';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
@@ -13,46 +10,14 @@ if (!canvas) {
 const SCALE = 2;
 const TILE_SIZE = 8;
 
-const grid = Grid.fromStringArray(RAW_MAP_DATA);
-const scoreManager = new ScoreManager({ grid, highScore: 10000 });
 const renderer = new CanvasRenderer({ canvas, scale: SCALE, tileSize: TILE_SIZE });
-
-// Initialize Pacman at standard arcade start position (tile 13.5, row 26)
-const pacman = new Pacman({
-  grid,
-  tileSize: TILE_SIZE,
-  position: new Vector2D(13.5 * TILE_SIZE, 26 * TILE_SIZE + 4),
-  direction: Direction.NONE,
-  speed: 80,
-});
-
-// Initial ghost visual lineup
-const ghosts: RenderableGhost[] = [
-  {
-    type: GhostType.BLINKY,
-    position: new Vector2D(13.5 * TILE_SIZE, 14 * TILE_SIZE + 4),
-    direction: Direction.LEFT,
-    state: GhostState.SCATTER,
-  },
-  {
-    type: GhostType.PINKY,
-    position: new Vector2D(13.5 * TILE_SIZE, 17 * TILE_SIZE + 4),
-    direction: Direction.UP,
-    state: GhostState.SCATTER,
-  },
-  {
-    type: GhostType.INKY,
-    position: new Vector2D(11.5 * TILE_SIZE, 17 * TILE_SIZE + 4),
-    direction: Direction.UP,
-    state: GhostState.SCATTER,
-  },
-  {
-    type: GhostType.CLYDE,
-    position: new Vector2D(15.5 * TILE_SIZE, 17 * TILE_SIZE + 4),
-    direction: Direction.UP,
-    state: GhostState.SCATTER,
-  },
-];
+const gameLoop = GameLoop.createDefault({ tileSize: TILE_SIZE, highScore: 10000 });
+const pacman = gameLoop.getPacman();
+const ghosts = gameLoop.getGhosts();
+const grid = gameLoop.getGrid();
+const waveTimer = gameLoop.getWaveTimer();
+const scoreManager = gameLoop.getScoreManager();
+const collisionManager = gameLoop.getCollisionManager();
 
 // Keyboard input binding for responsive player controls
 window.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -77,6 +42,11 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
       pacman.requestDirection(Direction.RIGHT);
       event.preventDefault();
       break;
+    case 'KeyP':
+    case 'Space':
+      gameLoop.togglePause();
+      event.preventDefault();
+      break;
     default:
       break;
   }
@@ -84,22 +54,24 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
 
 let lastTimestamp = performance.now();
 
-function gameLoop(currentTimestamp: number): void {
-  const deltaSeconds = Math.min((currentTimestamp - lastTimestamp) / 1000, 0.1);
+function frameStep(currentTimestamp: number): void {
+  const deltaSeconds = (currentTimestamp - lastTimestamp) / 1000;
   lastTimestamp = currentTimestamp;
 
-  // Update simulation
-  pacman.update(deltaSeconds);
+  // 1. Advance simulation step
+  gameLoop.update(deltaSeconds);
 
-  // Consume pellets at Pacman's current discrete tile
-  const tileCoord = pacman.getTile();
-  const currentTile = grid.getTileAt(tileCoord.x, tileCoord.y);
-  if (currentTile === TileType.PELLET || currentTile === TileType.ENERGIZER) {
-    scoreManager.consumeTile(currentTile);
-    grid.setTileAt(tileCoord.x, tileCoord.y, TileType.EMPTY);
-  }
+  // 2. Map renderable ghost visual states
+  const isFlashing = waveTimer.isFrightenedFlashing();
+  const renderableGhosts: RenderableGhost[] = ghosts.map((ghost) => ({
+    type: ghost.getType(),
+    position: ghost.getPosition(),
+    direction: ghost.getDirection(),
+    state: ghost.getState(),
+    isFlashing,
+  }));
 
-  // Render composite frame
+  // 3. Render composite frame
   renderer.render({
     grid,
     pacman: {
@@ -107,20 +79,26 @@ function gameLoop(currentTimestamp: number): void {
       direction: pacman.getDirection(),
       isMoving: pacman.isMoving(),
     },
-    ghosts,
+    ghosts: renderableGhosts,
     hud: {
       score: scoreManager.getScore(),
       highScore: scoreManager.getHighScore(),
-      lives: 3,
-      statusText: pacman.getDirection() === Direction.NONE ? 'READY!' : undefined,
+      lives: collisionManager.getLives(),
+      statusText: collisionManager.isGameOver()
+        ? 'GAME OVER'
+        : gameLoop.isPaused()
+        ? 'PAUSED'
+        : pacman.getDirection() === Direction.NONE
+        ? 'READY!'
+        : undefined,
     },
     energizerVisible: Math.floor(currentTimestamp / 250) % 2 === 0,
     animationTick: Math.floor(currentTimestamp / 120),
   });
 
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(frameStep);
 }
 
-requestAnimationFrame(gameLoop);
+requestAnimationFrame(frameStep);
 
-console.log('Wakabyte engine initialized with CanvasRenderer loop.');
+console.log('Wakabyte engine initialized with decoupled GameLoop simulation.');

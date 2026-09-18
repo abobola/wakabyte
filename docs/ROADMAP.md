@@ -41,7 +41,7 @@ Phase 5: Scoring, Collisions & Game State (TDD)
 Phase 6: HTML5 Canvas Rendering & Web Audio
    │
    ▼
-Phase 7: CI/CD Pipeline & Static Edge Hosting
+Phase 7: Quality Tooling, CI/CD & Static Edge Hosting
 ```
 
 ---
@@ -172,15 +172,22 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 
 ---
 
-### Phase 7: Automated CI/CD & Cloud Deployment
-**Goal:** Production-grade deployment with automated test verification on every commit.
+### Phase 7: Quality Tooling, Automated CI/CD & Cloud Deployment
+**Goal:** Production-grade deployment with automated linting, test verification, and edge deployment on every commit.
 
-- [ ] **7.1 GitHub Actions Workflow (`.github/workflows/ci.yml`)**
+- [ ] **7.1 Static Analysis & Quality Tooling (Linters & Formatters)**
+  - Configure ESLint with TypeScript support (`@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`).
+  - Configure SonarJS rules (`eslint-plugin-sonarjs`) for automated cognitive complexity and code smell enforcement.
+  - Setup Biome / formatting rules for zero-friction linting & code formatting.
+  - Add `npm run lint` and `npm run lint:fix` npm scripts.
+
+- [ ] **7.2 GitHub Actions Workflow (`.github/workflows/ci.yml`)**
+  - Run linter checks (`npm run lint`).
   - Run type checks (`npm run typecheck`).
   - Run Vitest unit tests in CI (`npm run test:run`).
   - Build static distribution bundle (`npm run build`).
 
-- [ ] **7.2 Zero-Cost Static Edge Deployment**
+- [ ] **7.3 Zero-Cost Static Edge Deployment**
   - Automated deployment of `dist/` to **Cloudflare Pages** / **Vercel**.
   - Custom domain routing configuration.
 

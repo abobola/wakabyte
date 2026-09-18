@@ -26,17 +26,13 @@ export enum CollisionType {
  */
 export interface CollidableEntity {
   getPosition(): Vector2D;
-  setPosition?(position: Vector2D): void;
-  getTile?(): Vector2D;
   reset?(): void;
 }
 
 /**
  * Pacman entity contract for collision resolution.
  */
-export interface PacmanEntity extends CollidableEntity {
-  reset?(): void;
-}
+export interface PacmanEntity extends CollidableEntity {}
 
 /**
  * Ghost entity contract for collision resolution.
@@ -44,7 +40,6 @@ export interface PacmanEntity extends CollidableEntity {
 export interface GhostEntity extends CollidableEntity {
   getState(): GhostState;
   eat(): void;
-  reset?(): void;
 }
 
 /**

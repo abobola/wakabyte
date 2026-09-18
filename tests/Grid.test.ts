@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Grid, TileType } from '../src/core/Grid';
-import { Vector2D } from '../src/core/Vector2D';
-import { Direction } from '../src/core/Direction';
+import { Grid, TileType, Vector2D, Direction } from '../src/core';
 import { RAW_MAP_DATA, MAP_WIDTH, MAP_HEIGHT } from '../src/config/mapData';
 
 describe('Grid', () => {
