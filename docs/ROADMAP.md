@@ -85,7 +85,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
     - Intersection detection (tiles where 3+ cardinal directions are walkable).
   - **Deliverable:** `Grid` query engine and authentic 28x36 arcade tilemap layout.
 
-- [ ] **2.2 Tunnel Wrap-Around Mechanics**
+- [x] **2.2 Tunnel Wrap-Around Mechanics**
   - **Tests (`tests/Grid.test.ts`):**
     - Screen-edge wrapping: exiting left tunnel tile $(0, 17)$ reappears at right $(27, 17)$ seamlessly.
   - **Deliverable:** Deterministic coordinate wrapping logic.

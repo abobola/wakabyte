@@ -338,4 +338,160 @@ describe('Grid', () => {
       expect(arcadeGrid.isIntersection(15, 26)).toBe(true);
     });
   });
+
+  describe('Tunnel Wrap-Around Mechanics (Milestone 2.2)', () => {
+    let arcadeGrid: Grid;
+
+    beforeEach(() => {
+      arcadeGrid = Grid.createDefault();
+    });
+
+    describe('wrapTile', () => {
+      it('should seamlessly wrap left tunnel exit (0, 17) moving left to (27, 17)', () => {
+        const leftExit = new Vector2D(-1, 17);
+        const wrapped = arcadeGrid.wrapTile(leftExit);
+
+        expect(wrapped.x).toBe(27);
+        expect(wrapped.y).toBe(17);
+        expect(wrapped).toBeInstanceOf(Vector2D);
+      });
+
+      it('should seamlessly wrap right tunnel exit (27, 17) moving right to (0, 17)', () => {
+        const rightExit = new Vector2D(28, 17);
+        const wrapped = arcadeGrid.wrapTile(rightExit);
+
+        expect(wrapped.x).toBe(0);
+        expect(wrapped.y).toBe(17);
+        expect(wrapped).toBeInstanceOf(Vector2D);
+      });
+
+      it('should keep in-bounds coordinates unchanged', () => {
+        const inside = new Vector2D(14, 17);
+        const wrapped = arcadeGrid.wrapTile(inside);
+
+        expect(wrapped.x).toBe(14);
+        expect(wrapped.y).toBe(17);
+      });
+
+      it('should wrap vertical screen-edges seamlessly', () => {
+        const topExit = arcadeGrid.wrapTile(10, -1);
+        expect(topExit.x).toBe(10);
+        expect(topExit.y).toBe(35);
+
+        const bottomExit = arcadeGrid.wrapTile(10, 36);
+        expect(bottomExit.x).toBe(10);
+        expect(bottomExit.y).toBe(0);
+      });
+
+      it('should wrap corner coordinates correctly', () => {
+        const topLeft = arcadeGrid.wrapTile(-1, -1);
+        expect(topLeft.x).toBe(27);
+        expect(topLeft.y).toBe(35);
+
+        const bottomRight = arcadeGrid.wrapTile(28, 36);
+        expect(bottomRight.x).toBe(0);
+        expect(bottomRight.y).toBe(0);
+      });
+
+      it('should support multi-screen wrap offsets deterministically', () => {
+        const farLeft = arcadeGrid.wrapTile(-29, 17); // -29 = -1 - 28 -> 27
+        expect(farLeft.x).toBe(27);
+        expect(farLeft.y).toBe(17);
+
+        const farRight = arcadeGrid.wrapTile(56, 17); // 56 = 2 * 28 -> 0
+        expect(farRight.x).toBe(0);
+        expect(farRight.y).toBe(17);
+      });
+
+      it('should support both Vector2D and numeric (x, y) arguments', () => {
+        const fromVector = arcadeGrid.wrapTile(new Vector2D(-1, 17));
+        const fromNumbers = arcadeGrid.wrapTile(-1, 17);
+
+        expect(fromVector.equals(fromNumbers)).toBe(true);
+      });
+    });
+
+    describe('wrapContinuous', () => {
+      const tileSize = 8;
+      const pixelWidth = MAP_WIDTH * tileSize; // 224
+      const pixelHeight = MAP_HEIGHT * tileSize; // 288
+
+      it('should wrap continuous sub-pixel coordinates exiting left screen boundary', () => {
+        // Moving left past x = 0 by 0.5px (x = -0.5px) at y = 136px (row 17 * 8)
+        const wrapped = arcadeGrid.wrapContinuous(new Vector2D(-0.5, 136), tileSize);
+
+        expect(wrapped.x).toBeCloseTo(pixelWidth - 0.5);
+        expect(wrapped.y).toBe(136);
+      });
+
+      it('should wrap continuous sub-pixel coordinates exiting right screen boundary', () => {
+        // Moving right past x = 224 by 0.5px (x = 224.5px)
+        const wrapped = arcadeGrid.wrapContinuous(new Vector2D(pixelWidth + 0.5, 136), tileSize);
+
+        expect(wrapped.x).toBeCloseTo(0.5);
+        expect(wrapped.y).toBe(136);
+      });
+
+      it('should keep in-bounds continuous sub-pixel coordinates unchanged', () => {
+        const wrapped = arcadeGrid.wrapContinuous(new Vector2D(100.25, 136.75), tileSize);
+
+        expect(wrapped.x).toBeCloseTo(100.25);
+        expect(wrapped.y).toBeCloseTo(136.75);
+      });
+
+      it('should wrap vertical continuous sub-pixel coordinates', () => {
+        const wrappedTop = arcadeGrid.wrapContinuous(100, -1.5, tileSize);
+        expect(wrappedTop.x).toBe(100);
+        expect(wrappedTop.y).toBeCloseTo(pixelHeight - 1.5);
+
+        const wrappedBottom = arcadeGrid.wrapContinuous(100, pixelHeight + 2.5, tileSize);
+        expect(wrappedBottom.x).toBe(100);
+        expect(wrappedBottom.y).toBeCloseTo(2.5);
+      });
+
+      it('should support both Vector2D and numeric (x, y, tileSize) arguments', () => {
+        const fromVector = arcadeGrid.wrapContinuous(new Vector2D(-2.5, 50), tileSize);
+        const fromNumbers = arcadeGrid.wrapContinuous(-2.5, 50, tileSize);
+
+        expect(fromVector.equals(fromNumbers)).toBe(true);
+      });
+
+      it('should throw an error if tileSize is zero or negative', () => {
+        expect(() => arcadeGrid.wrapContinuous(new Vector2D(10, 10), 0)).toThrow(
+          'Tile size must be greater than zero'
+        );
+        expect(() => arcadeGrid.wrapContinuous(10, 10, -8)).toThrow(
+          'Tile size must be greater than zero'
+        );
+      });
+    });
+
+    describe('Wrapped tile lookups & walkability', () => {
+      it('should lookup tile at wrapped coordinates via getTileAtWrapped', () => {
+        // Exiting left at (-1, 17) wraps to (27, 17) which is EMPTY
+        expect(arcadeGrid.getTileAtWrapped(-1, 17)).toBe(TileType.EMPTY);
+        expect(arcadeGrid.getTileAtWrapped(new Vector2D(-1, 17))).toBe(TileType.EMPTY);
+
+        // Exiting right at (28, 17) wraps to (0, 17) which is EMPTY
+        expect(arcadeGrid.getTileAtWrapped(28, 17)).toBe(TileType.EMPTY);
+        expect(arcadeGrid.getTileAtWrapped(new Vector2D(28, 17))).toBe(TileType.EMPTY);
+
+        // Coordinate (-1, 0) wraps to (27, 0) which is EMPTY (top margin)
+        expect(arcadeGrid.getTileAtWrapped(-1, 0)).toBe(TileType.EMPTY);
+      });
+
+      it('should verify walkability through wrap-around tunnel via isWalkableWrapped', () => {
+        // Left tunnel exit (-1, 17) -> wraps to (27, 17) (EMPTY -> walkable)
+        expect(arcadeGrid.isWalkableWrapped(-1, 17)).toBe(true);
+        expect(arcadeGrid.isWalkableWrapped(new Vector2D(-1, 17))).toBe(true);
+
+        // Right tunnel exit (28, 17) -> wraps to (0, 17) (EMPTY -> walkable)
+        expect(arcadeGrid.isWalkableWrapped(28, 17)).toBe(true);
+        expect(arcadeGrid.isWalkableWrapped(new Vector2D(28, 17))).toBe(true);
+
+        // Row 3 (wall row): (-1, 3) wraps to (27, 3) which is WALL (not walkable)
+        expect(arcadeGrid.isWalkableWrapped(-1, 3)).toBe(false);
+      });
+    });
+  });
 });

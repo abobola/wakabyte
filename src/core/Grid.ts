@@ -99,6 +99,58 @@ export class Grid {
   }
 
   /**
+   * Wraps discrete tile coordinates around grid boundaries (toroidal wrap-around).
+   */
+  wrapTile(coords: Vector2D): Vector2D;
+  wrapTile(x: number, y: number): Vector2D;
+  wrapTile(xOrCoords: number | Vector2D, maybeY?: number): Vector2D {
+    const x = typeof xOrCoords === 'number' ? xOrCoords : xOrCoords.x;
+    const y = typeof xOrCoords === 'number' ? (maybeY as number) : xOrCoords.y;
+
+    const wrappedX = ((x % this.width) + this.width) % this.width;
+    const wrappedY = ((y % this.height) + this.height) % this.height;
+
+    return new Vector2D(wrappedX === 0 ? 0 : wrappedX, wrappedY === 0 ? 0 : wrappedY);
+  }
+
+  /**
+   * Wraps continuous sub-pixel coordinates around grid pixel boundaries.
+   */
+  wrapContinuous(coords: Vector2D, tileSize: number): Vector2D;
+  wrapContinuous(x: number, y: number, tileSize: number): Vector2D;
+  wrapContinuous(
+    xOrCoords: number | Vector2D,
+    yOrTileSize: number,
+    maybeTileSize?: number
+  ): Vector2D {
+    let x: number;
+    let y: number;
+    let tileSize: number;
+
+    if (typeof xOrCoords === 'number') {
+      x = xOrCoords;
+      y = yOrTileSize;
+      tileSize = maybeTileSize as number;
+    } else {
+      x = xOrCoords.x;
+      y = xOrCoords.y;
+      tileSize = yOrTileSize;
+    }
+
+    if (tileSize <= 0) {
+      throw new Error('Tile size must be greater than zero');
+    }
+
+    const pixelWidth = this.width * tileSize;
+    const pixelHeight = this.height * tileSize;
+
+    const wrappedX = ((x % pixelWidth) + pixelWidth) % pixelWidth;
+    const wrappedY = ((y % pixelHeight) + pixelHeight) % pixelHeight;
+
+    return new Vector2D(wrappedX === 0 ? 0 : wrappedX, wrappedY === 0 ? 0 : wrappedY);
+  }
+
+  /**
    * Returns the tile type at the specified coordinate, or undefined if out of bounds.
    */
   getTileAt(coords: Vector2D): TileType | undefined;
@@ -111,6 +163,19 @@ export class Grid {
       return undefined;
     }
     return this.matrix[y][x];
+  }
+
+  /**
+   * Returns the tile type at the specified coordinate after applying wrap-around logic.
+   */
+  getTileAtWrapped(coords: Vector2D): TileType;
+  getTileAtWrapped(x: number, y: number): TileType;
+  getTileAtWrapped(xOrCoords: number | Vector2D, maybeY?: number): TileType {
+    const wrapped =
+      typeof xOrCoords === 'number'
+        ? this.wrapTile(xOrCoords, maybeY as number)
+        : this.wrapTile(xOrCoords);
+    return this.getTileAt(wrapped)!;
   }
 
   /**
@@ -165,6 +230,25 @@ export class Grid {
       case TileType.WALL:
       default:
         return false;
+    }
+  }
+
+  /**
+   * Determines if a tile is walkable after applying wrap-around logic.
+   */
+  isWalkableWrapped(coords: Vector2D, options?: WalkableOptions): boolean;
+  isWalkableWrapped(x: number, y: number, options?: WalkableOptions): boolean;
+  isWalkableWrapped(
+    xOrCoords: number | Vector2D,
+    yOrOptions?: number | WalkableOptions,
+    maybeOptions?: WalkableOptions
+  ): boolean {
+    if (typeof xOrCoords === 'number') {
+      const wrapped = this.wrapTile(xOrCoords, yOrOptions as number);
+      return this.isWalkable(wrapped, maybeOptions);
+    } else {
+      const wrapped = this.wrapTile(xOrCoords);
+      return this.isWalkable(wrapped, yOrOptions as WalkableOptions | undefined);
     }
   }
 
