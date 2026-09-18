@@ -1,5 +1,6 @@
 import { GhostState } from './ai';
 import { SoundManager } from './audio';
+import { TouchController } from './controls';
 import { Direction, GameLoop } from './core';
 import { CanvasRenderer, type RenderableGhost } from './render';
 
@@ -76,6 +77,22 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
     default:
       break;
   }
+});
+
+// Touch and virtual on-screen gamepad controller for mobile and touch-enabled devices
+new TouchController({
+  dpadElement: document.getElementById('dpad'),
+  dpadUp: document.getElementById('btn-up'),
+  dpadDown: document.getElementById('btn-down'),
+  dpadLeft: document.getElementById('btn-left'),
+  dpadRight: document.getElementById('btn-right'),
+  pauseButton: document.getElementById('btn-pause'),
+  muteButton: document.getElementById('btn-mute'),
+  swipeElement: canvas,
+  onDirection: (direction) => pacman.requestDirection(direction),
+  onPauseToggle: () => gameLoop.togglePause(),
+  onMuteToggle: () => soundManager.toggleMute(),
+  onInteraction: unlockAudio,
 });
 
 function resolveStatusText(

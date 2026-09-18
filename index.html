@@ -19,8 +19,32 @@
 
     <main id="game-container">
       <canvas id="game-canvas" width="448" height="576"></canvas>
+
+      <section class="virtual-controls" id="virtual-controls" aria-label="Touch Controls">
+        <div class="dpad-container" id="dpad">
+          <button type="button" class="dpad-btn dpad-up" id="btn-up" aria-label="Up">▲</button>
+          <div class="dpad-middle">
+            <button type="button" class="dpad-btn dpad-left" id="btn-left" aria-label="Left">◀</button>
+            <div class="dpad-center" aria-hidden="true"></div>
+            <button type="button" class="dpad-btn dpad-right" id="btn-right" aria-label="Right">▶</button>
+          </div>
+          <button type="button" class="dpad-btn dpad-down" id="btn-down" aria-label="Down">▼</button>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" class="action-btn" id="btn-pause" aria-label="Pause or Resume Game">
+            <span class="btn-icon">⏸</span>
+            <span class="btn-label">PAUSE</span>
+          </button>
+          <button type="button" class="action-btn" id="btn-mute" aria-label="Toggle Audio Mute">
+            <span class="btn-icon">🔊</span>
+            <span class="btn-label">MUTE</span>
+          </button>
+        </div>
+      </section>
+
       <div class="controls-hint">
-        Controls: [Arrow Keys / WASD] Move &middot; [P / Space] Pause &middot; [M] Mute
+        Controls: [Arrow Keys / WASD] Move &middot; [P / Space] Pause &middot; [M] Mute &middot; [Touch / Swipe]
       </div>
     </main>
 

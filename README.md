@@ -31,6 +31,7 @@ Unlike typical tutorial clones that tightly couple game logic with browser Canva
   - **Clyde (Pokey):** Proximity-based heuristic (chases when distance > 8 tiles, retreats to scatter corner when $\le$ 8 tiles).
 - ⏱️ **Global Wave State Machine:** Dynamic timed cycles between **Scatter** and **Chase** modes, plus **Frightened** (energizer) and **Eaten** (eyes returning to ghost house) states.
 - 🎮 **Grid Movement & Input Buffering:** Sub-pixel continuous movement with strict tile alignment, responsive cornering via input pre-buffering, and seamless tunnel wrap-around.
+- 📱 **Mobile & Touch Support:** On-screen retro virtual D-Pad, dedicated action buttons (Pause, Mute), and canvas swipe gesture recognition for touch-enabled devices.
 - 🔊 **Synthesized Audio Pipeline:** Web Audio API sound generator creating authentic 8-bit arcade tones without external audio asset dependencies.
 - 🚀 **Zero-Cost Cloud Architecture:** Optimized for instantaneous static edge hosting (Cloudflare Pages, Vercel, GitHub Pages) with automated GitHub Actions CI/CD pipelines.
 
@@ -126,11 +127,14 @@ wakabyte/
 │   ├── audio/                 # Procedural Web Audio synthesis
 │   │   ├── SoundManager.ts    # Oscillator-based 8-bit sound effects & ambient siren FSM
 │   │   └── index.ts           # Audio barrel export
+│   ├── controls/              # Touch & virtual gamepad input adapter
+│   │   ├── TouchController.ts # Virtual D-Pad, action buttons & swipe gestures
+│   │   └── index.ts           # Controls barrel export
 │   ├── config/                # Map definitions & constants
 │   │   └── mapData.ts         # Authentic 28x36 arcade tile matrix
 │   ├── style.css              # Arcade CRT styling & responsive viewport
 │   └── main.ts                # Application entrypoint & browser render loop
-├── tests/                     # 14 automated Vitest test suites (312 passing tests)
+├── tests/                     # 15 automated Vitest test suites (321 passing tests)
 │   ├── Vector2D.test.ts
 │   ├── Direction.test.ts
 │   ├── Grid.test.ts
@@ -144,7 +148,8 @@ wakabyte/
 │   ├── movement.test.ts
 │   ├── GameLoop.test.ts
 │   ├── CanvasRenderer.test.ts
-│   └── SoundManager.test.ts
+│   ├── SoundManager.test.ts
+│   └── TouchController.test.ts
 ├── docs/                      # Architecture Decision Records & Roadmaps
 │   ├── DEPLOYMENT.md          # Static edge CDN deployment & custom domain guide
 │   ├── ROADMAP.md
