@@ -4,3 +4,4 @@ dist-ssr
 *.local
 coverage
 .DS_Store
+.idea/
