@@ -38,6 +38,8 @@ const unlockAudio = (): void => {
 };
 window.addEventListener('keydown', unlockAudio, { once: true });
 window.addEventListener('click', unlockAudio, { once: true });
+window.addEventListener('touchstart', unlockAudio, { once: true });
+window.addEventListener('pointerdown', unlockAudio, { once: true });
 
 // Keyboard input binding for responsive player controls
 window.addEventListener('keydown', (event: KeyboardEvent) => {

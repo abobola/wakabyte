@@ -209,6 +209,36 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
       expect(suspendedContext.state).toBe('running');
     });
 
+    it('defers ambient oscillator creation when context is suspended and starts on resume', async () => {
+      const suspendedContext = new MockAudioContext('suspended');
+      const manager = new SoundManager({
+        context: suspendedContext as unknown as AudioContext,
+      });
+
+      // Attempt updating ambient mode while suspended (as occurs on page load)
+      manager.updateAmbient(AmbientMode.SIREN);
+      expect(manager.getAmbientMode()).toBe(AmbientMode.SIREN);
+      expect(suspendedContext.createdOscillators).toHaveLength(0);
+
+      // User interacts, triggering resume()
+      await manager.resume();
+      expect(suspendedContext.state).toBe('running');
+      expect(suspendedContext.createdOscillators.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('does not synthesize SFX oscillators when context is suspended', () => {
+      const suspendedContext = new MockAudioContext('suspended');
+      const manager = new SoundManager({
+        context: suspendedContext as unknown as AudioContext,
+      });
+
+      manager.playPellet();
+      manager.playEnergizer();
+      manager.playGhostEaten();
+
+      expect(suspendedContext.createdOscillators).toHaveLength(0);
+    });
+
     it('gracefully handles null audio context without throwing errors', () => {
       const headlessManager = new SoundManager({
         context: null as unknown as AudioContext,

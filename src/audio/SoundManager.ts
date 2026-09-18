@@ -46,10 +46,10 @@ export interface WakaFrequencies {
  * Generates authentic 8-bit retro sound effects and ambient sirens with zero external audio assets.
  */
 export class SoundManager {
-  private readonly context: AudioContext | null;
-  private readonly masterGain: GainNode | null = null;
-  private readonly sfxGain: GainNode | null = null;
-  private readonly ambientGain: GainNode | null = null;
+  private context: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private sfxGain: GainNode | null = null;
+  private ambientGain: GainNode | null = null;
 
   private masterVolume: number;
   private sfxVolume: number;
@@ -73,45 +73,60 @@ export class SoundManager {
 
     if (options.context !== undefined) {
       this.context = options.context;
-    } else if (typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)) {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      this.context = new AudioCtxClass();
-    } else {
-      this.context = null;
-    }
-
-    if (this.context) {
-      try {
-        this.masterGain = this.context.createGain();
-        this.sfxGain = this.context.createGain();
-        this.ambientGain = this.context.createGain();
-
-        this.sfxGain.connect(this.masterGain);
-        this.ambientGain.connect(this.masterGain);
-        this.masterGain.connect(this.context.destination);
-
-        this.updateGainNodes();
-      } catch {
-        // Fallback for mocked contexts missing connections
+      if (this.context) {
+        this.setupAudioGraph();
       }
     }
+  }
+
+  private setupAudioGraph(): void {
+    if (!this.context) return;
+    try {
+      this.masterGain = this.context.createGain();
+      this.sfxGain = this.context.createGain();
+      this.ambientGain = this.context.createGain();
+
+      this.sfxGain.connect(this.masterGain);
+      this.ambientGain.connect(this.masterGain);
+      this.masterGain.connect(this.context.destination);
+
+      this.updateGainNodes();
+    } catch {
+      // Fallback for mocked contexts missing connections
+    }
+  }
+
+  /**
+   * Lazily initializes AudioContext and audio graph if in browser and not yet created.
+   */
+  public ensureContext(): AudioContext | null {
+    if (!this.context && typeof window !== 'undefined') {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtxClass) {
+        this.context = new AudioCtxClass();
+        this.setupAudioGraph();
+      }
+    }
+    return this.context;
   }
 
   /**
    * Unlocks and resumes audio context on user gesture (click/keydown).
    */
   public async resume(): Promise<void> {
-    if (this.context?.state === 'suspended') {
-      await this.context.resume();
+    const ctx = this.ensureContext();
+    if (ctx?.state === 'suspended') {
+      await ctx.resume();
+    }
+    if (this.currentAmbientMode !== AmbientMode.NONE && !this.activeAmbientOsc) {
+      const pendingMode = this.currentAmbientMode;
+      this.currentAmbientMode = AmbientMode.NONE;
+      this.updateAmbient(pendingMode);
     }
   }
 
   public isInitialized(): boolean {
     return this.context !== null;
-  }
-
-  public getContext(): AudioContext | null {
-    return this.context;
   }
 
   public getMasterVolume(): number {
@@ -171,9 +186,9 @@ export class SoundManager {
    * Synthesizes alternating rhythmic chomp ("waka-waka") for pellet consumption.
    */
   public playPellet(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const duration = 0.08;
     const frequency = this.isWakaToneA ? this.wakaToneA : this.wakaToneB;
@@ -191,9 +206,9 @@ export class SoundManager {
    * Synthesizes energizer collection chime.
    */
   public playEnergizer(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const duration = 0.18;
 
@@ -210,9 +225,9 @@ export class SoundManager {
    * Synthesizes rapid ascending arpeggio when a frightened ghost is eaten.
    */
   public playGhostEaten(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const notes = [440, 587, 659, 880];
     const noteDuration = 0.05;
@@ -234,9 +249,9 @@ export class SoundManager {
   public playDeath(): void {
     this.stopAmbient();
 
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const steps = [784, 740, 698, 659, 622, 587, 523, 494, 440, 392, 349, 261, 130];
     const stepDuration = 0.07;
@@ -257,9 +272,9 @@ export class SoundManager {
    * Synthesizes game start opening melody.
    */
   public playGameStart(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const melody = [523, 1046, 784, 659, 1046, 784, 659];
     const noteDuration = 0.12;
@@ -279,9 +294,9 @@ export class SoundManager {
    * Synthesizes level clear fanfare.
    */
   public playLevelClear(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const fanfare = [523, 659, 784, 1046];
     const noteDuration = 0.15;
@@ -301,9 +316,9 @@ export class SoundManager {
    * Synthesizes extra life award sound.
    */
   public playExtraLife(): void {
-    if (!this.context || !this.sfxGain) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
-    const ctx = this.context;
     const now = ctx.currentTime;
     const notes = [880, 1320];
     const noteDuration = 0.1;
@@ -323,12 +338,13 @@ export class SoundManager {
    * Updates continuous ambient siren/hum based on current gameplay state.
    */
   public updateAmbient(mode: AmbientMode): void {
-    if (this.currentAmbientMode === mode) return;
+    if (this.currentAmbientMode === mode && this.activeAmbientOsc !== null) return;
+    if (this.currentAmbientMode === mode && (!this.context || this.context.state === 'suspended')) return;
 
     this.stopAmbient();
     this.currentAmbientMode = mode;
 
-    if (mode === AmbientMode.NONE || !this.context || !this.ambientGain) {
+    if (mode === AmbientMode.NONE || !this.context || !this.ambientGain || this.context.state === 'suspended') {
       return;
     }
 
