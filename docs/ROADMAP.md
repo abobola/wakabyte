@@ -101,7 +101,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
     - Buffer expiration timeout to prevent stale turns.
   - **Deliverable:** Clean FIFO / single-slot input buffer.
 
-- [ ] **3.2 Pacman Controller (`src/entities/Pacman.ts`)**
+- [x] **3.2 Pacman Controller (`src/entities/Pacman.ts`)**
   - **Tests (`tests/Pacman.test.ts`):**
     - Smooth continuous sub-pixel movement at configurable tile speeds.
     - Corner snapping: turning exactly when tile center is reached.
