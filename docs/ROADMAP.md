@@ -114,7 +114,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 4: Authentic Ghost AI & State Machine (FSM)
 **Goal:** Implement authentic 1980 arcade ghost targeting algorithms and global wave timers.
 
-- [ ] **4.1 Global Wave Timer & Ghost FSM (`src/ai/GhostFSM.ts`)**
+- [x] **4.1 Global Wave Timer & Ghost FSM (`src/ai/GhostFSM.ts`)**
   - **Tests (`tests/GhostFSM.test.ts`):**
     - Timed transitions between **Scatter** (e.g., 7s) and **Chase** (e.g., 20s).
     - **Frightened Mode** trigger on energizer pickup (timer override, blue state).
