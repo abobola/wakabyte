@@ -156,11 +156,15 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 6: Presentation Layer & Procedural Audio
 **Goal:** Render the deterministic game state onto HTML5 Canvas with low-latency Web Audio sound.
 
-- [ ] **6.1 Canvas 2D Renderer (`src/render/CanvasRenderer.ts`)**
-  - Maze tile rasterization (walls, paths, dots, energizers).
-  - Sprite rendering and sub-pixel position interpolation.
-  - Directional mouth opening/closing animations and ghost eye directions.
-  - HUD display (current score, high score, remaining lives counter).
+- [x] **6.1 Canvas 2D Renderer (`src/render/CanvasRenderer.ts`)**
+  - **Tests (`tests/CanvasRenderer.test.ts`):**
+    - Maze tile rasterization (walls, gate, normal pellets, flashing energizers).
+    - Pacman sprite rendering with directional mouth orientation and chomp/death animations.
+    - Ghost sprite rendering across states (Chase, Scatter, Frightened with flashing, Eaten eyes-only), type-specific color palettes, animated skirt tentacles, and directional pupil tracking.
+    - Arcade HUD display ("1UP", current score, "HIGH SCORE", high score, remaining lives icons, centered status text overlays).
+    - Sub-pixel continuous position interpolation with screen-edge tunnel wrap-around protection.
+    - Full composite frame render pipeline.
+  - **Deliverable:** `CanvasRenderer` presentation module and unified exports in `src/render/index.ts`.
 
 - [ ] **6.2 Procedural Web Audio Synthesizer (`src/audio/SoundManager.ts`)**
   - Oscillator-based 8-bit sound effects (waka-waka chime, siren, energizer hum, ghost eaten jingle, death sound).
