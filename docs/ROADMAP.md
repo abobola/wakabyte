@@ -136,7 +136,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 5: Scoring, Collisions & Game State
 **Goal:** Tie together gameplay rules, item consumption, life tracking, and win/loss states.
 
-- [ ] **5.1 Pellet & Energizer Consumption (`src/core/ScoreManager.ts`)**
+- [x] **5.1 Pellet & Energizer Consumption (`src/core/ScoreManager.ts`)**
   - **Tests (`tests/ScoreManager.test.ts`):**
     - Normal dot ($10\text{ pts}$) and Energizer ($50\text{ pts}$) collection.
     - Remaining pellet counter tracking and level clear trigger when count reaches 0.
