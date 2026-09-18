@@ -95,7 +95,7 @@ Phase 7: CI/CD Pipeline & Static Edge Hosting
 ### Phase 3: Pacman Movement & Input Buffering
 **Goal:** Implement continuous grid-aligned movement with pre-turn buffering.
 
-- [ ] **3.1 Input Buffer Queue (`src/core/InputBuffer.ts`)**
+- [x] **3.1 Input Buffer Queue (`src/core/InputBuffer.ts`)**
   - **Tests (`tests/InputBuffer.test.ts`):**
     - Storing user directional intent (e.g., pressing `LEFT` while moving `DOWN`).
     - Buffer expiration timeout to prevent stale turns.
