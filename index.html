@@ -3,40 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wakabyte - 2D Arcade Engine</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        background-color: #111;
-        color: #fff;
-        font-family: monospace;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-      }
-      #game-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-      }
-      canvas {
-        background-color: #000;
-        border: 2px solid #333;
-        image-rendering: pixelated;
-      }
-    </style>
+    <title>Anna Bobola | Wakabyte – 2D Arcade Engine</title>
+    <meta name="description" content="Wakabyte 2D Arcade Game Engine built with TypeScript and HTML5 Canvas by Anna Bobola." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%23FFCC00'/><polygon points='8,8 16,3 16,13' fill='%23111111'/></svg>"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div id="game-container">
+    <header>
+      <h1>WAKABYTE</h1>
+      <p>2D Arcade Engine &middot; Crafted by Anna Bobola</p>
+    </header>
+
+    <main id="game-container">
       <canvas id="game-canvas" width="448" height="576"></canvas>
-    </div>
+      <div class="controls-hint">
+        Controls: [Arrow Keys / WASD] Move &middot; [P / Space] Pause &middot; [M] Mute
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-links">
+        <a href="https://linkedin.com/in/annabobola" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <span class="separator">/</span>
+        <a href="https://github.com/abobola/wakabyte" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span class="separator">/</span>
+        <a href="mailto:hi@annabobola.pl">hi@annabobola.pl</a>
+      </div>
+      <div class="footer-copyright">
+        &copy; 2026 Anna Bobola Software Solutions
+      </div>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
