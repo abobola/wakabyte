@@ -55,6 +55,16 @@ export interface AmbientStateQuery {
   isGameOver: boolean;
 }
 
+interface AmbientTone {
+  waveform: OscillatorType;
+  baseHz: number;
+  /** Pitch wobble speed in Hz. */
+  lfoHz: number;
+  /** Pitch wobble depth in Hz. */
+  lfoDepthHz: number;
+  gain: number;
+}
+
 export interface WakaFrequencies {
   toneA: number;
   toneB: number;
@@ -392,78 +402,15 @@ export class SoundManager {
 
     const ctx = this.context;
     const now = ctx.currentTime;
+    const tone = this.resolveAmbientTone(mode);
 
     const osc = ctx.createOscillator();
     const toneGain = ctx.createGain();
 
-    switch (mode) {
-      case AmbientMode.SIREN: {
-        osc.type = this.profile.sirenWaveform ?? 'sawtooth';
-        osc.frequency.setValueAtTime(this.profile.sirenBaseHz ?? 440, now);
-
-        // Low frequency oscillator (LFO) for siren pitch modulation
-        try {
-          const lfo = ctx.createOscillator();
-          const lfoGain = ctx.createGain();
-          lfo.frequency.setValueAtTime(this.profile.sirenLfoHz ?? 3, now); // default 3Hz modulation
-          lfoGain.gain.setValueAtTime(this.profile.sirenLfoDepthHz ?? 80, now); // default +/- 80Hz
-
-          lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency);
-          lfo.start(now);
-          this.activeAmbientLfo = lfo;
-        } catch {
-          // Fallback if AudioParam connection unsupported
-        }
-
-        toneGain.gain.setValueAtTime(0.4, now);
-        break;
-      }
-
-      case AmbientMode.FRIGHTENED: {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(160, now);
-
-        try {
-          const lfo = ctx.createOscillator();
-          const lfoGain = ctx.createGain();
-          lfo.frequency.setValueAtTime(6, now);
-          lfoGain.gain.setValueAtTime(40, now);
-
-          lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency);
-          lfo.start(now);
-          this.activeAmbientLfo = lfo;
-        } catch {
-          // Fallback
-        }
-
-        toneGain.gain.setValueAtTime(0.35, now);
-        break;
-      }
-
-      case AmbientMode.EYES: {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(800, now);
-
-        try {
-          const lfo = ctx.createOscillator();
-          const lfoGain = ctx.createGain();
-          lfo.frequency.setValueAtTime(10, now);
-          lfoGain.gain.setValueAtTime(150, now);
-
-          lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency);
-          lfo.start(now);
-          this.activeAmbientLfo = lfo;
-        } catch {
-          // Fallback
-        }
-
-        toneGain.gain.setValueAtTime(0.45, now);
-        break;
-      }
-    }
+    osc.type = tone.waveform;
+    osc.frequency.setValueAtTime(tone.baseHz, now);
+    this.activeAmbientLfo = this.createPitchLfo(osc, tone.lfoHz, tone.lfoDepthHz);
+    toneGain.gain.setValueAtTime(tone.gain, now);
 
     osc.connect(toneGain);
     toneGain.connect(this.ambientGain);
@@ -508,6 +455,54 @@ export class SoundManager {
    */
   public stopAll(): void {
     this.stopAmbient();
+  }
+
+  /**
+   * Sound design of each continuous ambient mode (the siren honors the sound profile).
+   */
+  private resolveAmbientTone(mode: AmbientMode): AmbientTone {
+    switch (mode) {
+      case AmbientMode.FRIGHTENED:
+        return { waveform: 'square', baseHz: 160, lfoHz: 6, lfoDepthHz: 40, gain: 0.35 };
+      case AmbientMode.EYES:
+        return { waveform: 'sawtooth', baseHz: 800, lfoHz: 10, lfoDepthHz: 150, gain: 0.45 };
+      default:
+        return {
+          waveform: this.profile.sirenWaveform ?? 'sawtooth',
+          baseHz: this.profile.sirenBaseHz ?? 440,
+          lfoHz: this.profile.sirenLfoHz ?? 3,
+          lfoDepthHz: this.profile.sirenLfoDepthHz ?? 80,
+          gain: 0.4,
+        };
+    }
+  }
+
+  /**
+   * Starts a low frequency oscillator that wobbles the pitch of `osc`.
+   * Returns null when the audio backend can't connect it to an AudioParam.
+   */
+  private createPitchLfo(
+    osc: OscillatorNode,
+    lfoHz: number,
+    depthHz: number,
+  ): OscillatorNode | null {
+    const ctx = this.context;
+    if (!ctx) return null;
+    const now = ctx.currentTime;
+    try {
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(lfoHz, now);
+      lfoGain.gain.setValueAtTime(depthHz, now);
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start(now);
+      return lfo;
+    } catch {
+      // Fallback if AudioParam connection unsupported
+      return null;
+    }
   }
 
   /**

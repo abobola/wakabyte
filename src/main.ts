@@ -2,7 +2,7 @@ import { GhostState } from './ai';
 import { SoundManager } from './audio';
 import { attachKeyboardControls, TouchController } from './controls';
 import { GameLoop } from './core';
-import { CanvasRenderer, Fireworks, type RenderableGhost } from './render';
+import { CanvasRenderer, Celebration, type RenderableGhost } from './render';
 import { HALLOWEEN_EDITION, isHalloweenActive } from './themes';
 import { createToggleButtonView, resolveStatus } from './ui';
 
@@ -50,10 +50,11 @@ const grid = gameLoop.getGrid();
 const waveTimer = gameLoop.getWaveTimer();
 const scoreManager = gameLoop.getScoreManager();
 const collisionManager = gameLoop.getCollisionManager();
-const fireworks = new Fireworks({
+const celebration = new Celebration({
   width: grid.width * TILE_SIZE,
   height: grid.height * TILE_SIZE,
-  colors: edition?.fireworksColors,
+  fireworksColors: edition?.fireworksColors,
+  wallColors: edition?.celebrationWallColors,
 });
 
 // Unlock Web Audio context on first user interaction to comply with browser autoplay policies
@@ -125,8 +126,6 @@ new TouchController({
   onInteraction: unlockAudio,
 });
 
-const CELEBRATION_WALL_COLORS = edition?.celebrationWallColors ?? ['#2121DE', '#FFFFFF'];
-
 const pauseButtonView = createToggleButtonView(
   pauseButton,
   { icon: '⏸', label: 'PAUSE' },
@@ -147,6 +146,8 @@ function frameStep(currentTimestamp: number): void {
 
   // 1. Advance simulation step
   gameLoop.update(deltaSeconds);
+  const isGameOver = collisionManager.isGameOver();
+  const isLevelCleared = gameLoop.isLevelCleared();
 
   // 2. Manage continuous ambient procedural audio state
   const isFrightened = waveTimer.isFrightened();
@@ -155,7 +156,7 @@ function frameStep(currentTimestamp: number): void {
     isFrightened,
     hasEatenGhosts,
     isPaused: gameLoop.isPaused(),
-    isGameOver: collisionManager.isGameOver() || gameLoop.isLevelCleared(),
+    isGameOver: isGameOver || isLevelCleared,
   });
   soundManager.updateAmbient(ambientMode);
 
@@ -164,12 +165,7 @@ function frameStep(currentTimestamp: number): void {
   muteButtonView.setToggled(!soundManager.isAudible());
 
   // 2c. Win celebration: fireworks keep going until the player restarts
-  const isCelebrating = gameLoop.isLevelCleared();
-  if (isCelebrating) {
-    fireworks.update(deltaSeconds);
-  } else {
-    fireworks.reset();
-  }
+  celebration.update(isLevelCleared, deltaSeconds);
 
   // 3. Map renderable ghost visual states
   const isFlashing = waveTimer.isFrightenedFlashing();
@@ -191,19 +187,17 @@ function frameStep(currentTimestamp: number): void {
       isMoving: pacman.isMoving(),
     },
     // Ghosts leave the stage for the celebration
-    ghosts: isCelebrating ? [] : renderableGhosts,
-    wallColor: isCelebrating
-      ? CELEBRATION_WALL_COLORS[Math.floor(animationTick / 3) % CELEBRATION_WALL_COLORS.length]
-      : undefined,
-    particles: isCelebrating ? fireworks.getParticles() : undefined,
+    ghosts: celebration.filterGhosts(renderableGhosts),
+    wallColor: celebration.getWallColor(animationTick),
+    particles: celebration.getParticles(),
     hud: {
       score: scoreManager.getScore(),
       highScore: scoreManager.getHighScore(),
       lives: collisionManager.getLives(),
       ...resolveStatus(
         {
-          isGameOver: collisionManager.isGameOver(),
-          isLevelCleared: isCelebrating,
+          isGameOver,
+          isLevelCleared,
           isPaused: gameLoop.isPaused(),
           pacmanDirection: pacman.getDirection(),
           animationTick,
@@ -219,5 +213,3 @@ function frameStep(currentTimestamp: number): void {
 }
 
 requestAnimationFrame(frameStep);
-
-console.log('Wakabyte engine initialized with procedural Web Audio synthesizer.');
