@@ -330,6 +330,62 @@ describe('GameLoop Engine & Simulation Coordinator', () => {
       expect(customLoop.isLevelCleared()).toBe(true);
       expect(onLevelCleared).toHaveBeenCalled();
     });
+
+    it('freezes the simulation once the level is cleared', () => {
+      const customLoop = new GameLoop({
+        grid: simpleGrid,
+        pacman,
+        ghosts: [],
+        scoreManager,
+        waveTimer,
+        collisionManager,
+        tileSize,
+      });
+
+      for (let y = 0; y < simpleGrid.height; y++) {
+        for (let x = 0; x < simpleGrid.width; x++) {
+          if (x !== 1 || y !== 1) {
+            const tile = simpleGrid.getTileAt(x, y);
+            if (tile === TileType.PELLET || tile === TileType.ENERGIZER) {
+              scoreManager.consumeTile(tile);
+              simpleGrid.setTileAt(x, y, TileType.EMPTY);
+            }
+          }
+        }
+      }
+      customLoop.update(0.01);
+      expect(customLoop.isLevelCleared()).toBe(true);
+
+      const pacmanPos = pacman.getPosition().clone();
+      const elapsedWave = waveTimer.getTimeInCurrentPhase();
+      customLoop.update(0.1);
+
+      expect(pacman.getPosition().equals(pacmanPos)).toBe(true);
+      expect(waveTimer.getTimeInCurrentPhase()).toBe(elapsedWave);
+    });
+
+    it('resumes the simulation after restartGame following a win', () => {
+      const customLoop = GameLoop.createDefault({ tileSize });
+      const customScore = customLoop.getScoreManager();
+      const grid = customLoop.getGrid();
+      for (let y = 0; y < grid.height; y++) {
+        for (let x = 0; x < grid.width; x++) {
+          const tile = grid.getTileAt(x, y);
+          if (tile === TileType.PELLET || tile === TileType.ENERGIZER) {
+            customScore.consumeTile(tile);
+            grid.setTileAt(x, y, TileType.EMPTY);
+          }
+        }
+      }
+      expect(customLoop.isLevelCleared()).toBe(true);
+
+      customLoop.restartGame();
+
+      expect(customLoop.isLevelCleared()).toBe(false);
+      const elapsed = customLoop.getWaveTimer().getTimeInCurrentPhase();
+      customLoop.update(0.05);
+      expect(customLoop.getWaveTimer().getTimeInCurrentPhase()).toBeGreaterThan(elapsed);
+    });
   });
 
   describe('Pause & Lifecycle Controls', () => {

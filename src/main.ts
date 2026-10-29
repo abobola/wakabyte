@@ -2,7 +2,7 @@ import { GhostState } from './ai';
 import { SoundManager } from './audio';
 import { TouchController } from './controls';
 import { Direction, GameLoop } from './core';
-import { CanvasRenderer, type RenderableGhost } from './render';
+import { CanvasRenderer, Fireworks, type RenderableGhost, type RenderableHUD } from './render';
 import { createToggleButtonView } from './ui';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
@@ -33,6 +33,10 @@ const grid = gameLoop.getGrid();
 const waveTimer = gameLoop.getWaveTimer();
 const scoreManager = gameLoop.getScoreManager();
 const collisionManager = gameLoop.getCollisionManager();
+const fireworks = new Fireworks({
+  width: grid.width * TILE_SIZE,
+  height: grid.height * TILE_SIZE,
+});
 
 // Unlock Web Audio context on first user interaction to comply with browser autoplay policies
 const unlockAudio = (): void => {
@@ -51,6 +55,13 @@ const toggleSound = (): void => {
   }
   soundManager.setMuted(false);
   unlockAudio();
+};
+
+// A finished run (win or game over) can be restarted with Enter or a tap on the canvas
+const restartIfFinished = (): void => {
+  if (gameLoop.isGameOver() || gameLoop.isLevelCleared()) {
+    gameLoop.restartGame();
+  }
 };
 
 // Keyboard input binding for responsive player controls
@@ -85,6 +96,10 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
       toggleSound();
       event.preventDefault();
       break;
+    case 'Enter':
+      restartIfFinished();
+      event.preventDefault();
+      break;
     default:
       break;
   }
@@ -103,6 +118,8 @@ document.addEventListener('visibilitychange', () => {
     unlockAudio();
   }
 });
+
+canvas.addEventListener('click', restartIfFinished);
 
 const pauseButton = document.getElementById('btn-pause');
 const muteButton = document.getElementById('btn-mute');
@@ -123,21 +140,33 @@ new TouchController({
   onInteraction: unlockAudio,
 });
 
-function resolveStatusText(
+const CELEBRATION_COLORS = ['#FFFF00', '#FF0000', '#FFB8FF', '#00FFFF', '#FFB852'];
+const CELEBRATION_WALL_COLORS = ['#2121DE', '#FFFFFF'];
+
+function resolveStatus(
   isGameOver: boolean,
+  isLevelCleared: boolean,
   isPaused: boolean,
   pacmanDirection: Direction,
-): string | undefined {
+  animationTick: number,
+): Pick<RenderableHUD, 'statusText' | 'statusTextColor' | 'statusSubText'> {
   if (isGameOver) {
-    return 'GAME OVER';
+    return { statusText: 'GAME OVER', statusSubText: 'ENTER / TAP TO PLAY AGAIN' };
+  }
+  if (isLevelCleared) {
+    return {
+      statusText: 'YOU WIN!',
+      statusTextColor: CELEBRATION_COLORS[animationTick % CELEBRATION_COLORS.length],
+      statusSubText: 'ENTER / TAP TO PLAY AGAIN',
+    };
   }
   if (isPaused) {
-    return 'PAUSED';
+    return { statusText: 'PAUSED' };
   }
   if (pacmanDirection === Direction.NONE) {
-    return 'READY!';
+    return { statusText: 'READY!' };
   }
-  return undefined;
+  return {};
 }
 
 const pauseButtonView = createToggleButtonView(
@@ -168,13 +197,21 @@ function frameStep(currentTimestamp: number): void {
     isFrightened,
     hasEatenGhosts,
     isPaused: gameLoop.isPaused(),
-    isGameOver: collisionManager.isGameOver(),
+    isGameOver: collisionManager.isGameOver() || gameLoop.isLevelCleared(),
   });
   soundManager.updateAmbient(ambientMode);
 
   // 2b. Reflect pause/mute state in the action buttons
   pauseButtonView.setToggled(gameLoop.isPaused());
   muteButtonView.setToggled(!soundManager.isAudible());
+
+  // 2c. Win celebration: fireworks keep going until the player restarts
+  const isCelebrating = gameLoop.isLevelCleared();
+  if (isCelebrating) {
+    fireworks.update(deltaSeconds);
+  } else {
+    fireworks.reset();
+  }
 
   // 3. Map renderable ghost visual states
   const isFlashing = waveTimer.isFrightenedFlashing();
@@ -187,6 +224,7 @@ function frameStep(currentTimestamp: number): void {
   }));
 
   // 4. Render composite frame
+  const animationTick = Math.floor(currentTimestamp / 120);
   renderer.render({
     grid,
     pacman: {
@@ -194,19 +232,26 @@ function frameStep(currentTimestamp: number): void {
       direction: pacman.getDirection(),
       isMoving: pacman.isMoving(),
     },
-    ghosts: renderableGhosts,
+    // Ghosts leave the stage for the celebration
+    ghosts: isCelebrating ? [] : renderableGhosts,
+    wallColor: isCelebrating
+      ? CELEBRATION_WALL_COLORS[Math.floor(animationTick / 3) % CELEBRATION_WALL_COLORS.length]
+      : undefined,
+    particles: isCelebrating ? fireworks.getParticles() : undefined,
     hud: {
       score: scoreManager.getScore(),
       highScore: scoreManager.getHighScore(),
       lives: collisionManager.getLives(),
-      statusText: resolveStatusText(
+      ...resolveStatus(
         collisionManager.isGameOver(),
+        gameLoop.isLevelCleared(),
         gameLoop.isPaused(),
         pacman.getDirection(),
+        animationTick,
       ),
     },
     energizerVisible: Math.floor(currentTimestamp / 250) % 2 === 0,
-    animationTick: Math.floor(currentTimestamp / 120),
+    animationTick,
   });
 
   requestAnimationFrame(frameStep);

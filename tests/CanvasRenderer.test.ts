@@ -547,6 +547,77 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
       expect(statusCall).toBeDefined();
       expect(statusCall?.args[3]).toBe('#FFFF00');
     });
+
+    it('renders an optional sub status line below the status text', () => {
+      const hud: RenderableHUD = {
+        score: 0,
+        lives: 3,
+        statusText: 'YOU WIN!',
+        statusSubText: 'PRESS ENTER TO PLAY AGAIN',
+      };
+
+      renderer.renderHUD(hud);
+
+      const statusCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === 'YOU WIN!');
+      const subCall = ctx.calls.find(
+        (c) => c.method === 'fillText' && c.args[0] === 'PRESS ENTER TO PLAY AGAIN',
+      );
+      expect(subCall).toBeDefined();
+      expect(subCall?.args[2]).toBeGreaterThan(statusCall?.args[2] as number);
+    });
+  });
+
+  describe('Celebration Effects', () => {
+    it('renders walls with an overridden color', () => {
+      renderer.renderWalls(testGrid, '#FFFFFF');
+
+      const fillCalls = ctx.calls.filter((c) => c.method === 'fillRect');
+      expect(fillCalls.length).toBeGreaterThan(0);
+      expect(fillCalls.every((c) => c.args.length === 4)).toBe(true);
+    });
+
+    it('uses the wallColor from the frame state for walls', () => {
+      const colors: string[] = [];
+      const original = ctx.fillRect.bind(ctx);
+      ctx.fillRect = (x: number, y: number, w: number, h: number): void => {
+        colors.push(String(ctx.fillStyle));
+        original(x, y, w, h);
+      };
+
+      renderer.render({
+        grid: testGrid,
+        pacman: { position: new Vector2D(12, 12) },
+        wallColor: '#ABCDEF',
+      });
+
+      expect(colors).toContain('#ABCDEF');
+    });
+
+    it('draws one square per firework particle, scaled to canvas pixels', () => {
+      const scaled = new CanvasRenderer({
+        context: ctx as unknown as CanvasRenderingContext2D,
+        tileSize: 8,
+        scale: 2,
+      });
+      ctx.clearMockCalls();
+
+      scaled.renderParticles([
+        { x: 10, y: 20, vx: 0, vy: 0, age: 0, lifetime: 1, color: '#FF0000' },
+        { x: 30, y: 40, vx: 0, vy: 0, age: 0.5, lifetime: 1, color: '#00FF00' },
+      ]);
+
+      const rects = ctx.calls.filter((c) => c.method === 'fillRect');
+      expect(rects).toHaveLength(2);
+      const [x, y, w] = rects[0].args as number[];
+      expect(x + w / 2).toBe(20);
+      expect(y + w / 2).toBe(40);
+    });
+
+    it('draws nothing for an empty particle list', () => {
+      ctx.clearMockCalls();
+      renderer.renderParticles([]);
+      expect(ctx.calls).toHaveLength(0);
+    });
   });
 
   describe('Position Interpolation & Wrap-Around Math', () => {

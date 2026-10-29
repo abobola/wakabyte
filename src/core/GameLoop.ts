@@ -274,7 +274,7 @@ export class GameLoop {
    * Advances the simulation by deltaSeconds.
    */
   public update(deltaTimeSec: number): void {
-    if (this.paused || this.isGameOver() || deltaTimeSec <= 0) {
+    if (this.paused || this.isGameOver() || this.isLevelCleared() || deltaTimeSec <= 0) {
       return;
     }
 

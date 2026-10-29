@@ -1,5 +1,6 @@
 import { GhostState, GhostType } from '../ai';
 import { Direction, type Grid, TileType, Vector2D } from '../core';
+import type { FireworkParticle } from './Fireworks';
 
 /**
  * Visual styling theme for the arcade Canvas 2D renderer.
@@ -81,6 +82,7 @@ export interface RenderableHUD {
   level?: number;
   statusText?: string;
   statusTextColor?: string;
+  statusSubText?: string;
 }
 
 /**
@@ -93,6 +95,10 @@ export interface RenderGameState {
   hud?: RenderableHUD;
   energizerVisible?: boolean;
   animationTick?: number;
+  /** Overrides the maze wall color, e.g. to flash the maze during the win celebration. */
+  wallColor?: string;
+  /** Firework sparks in game-pixel coordinates, drawn above the maze. */
+  particles?: readonly FireworkParticle[];
 }
 
 /**
@@ -206,7 +212,7 @@ export class CanvasRenderer {
   /**
    * Renders walls and gate barriers across the grid.
    */
-  public renderWalls(grid: Grid): void {
+  public renderWalls(grid: Grid, wallColor: string = this.theme.wallColor): void {
     const ctx = this.context;
     if (!ctx) return;
 
@@ -221,7 +227,7 @@ export class CanvasRenderer {
         const y = row * effectiveTile;
 
         if (tile === TileType.WALL) {
-          ctx.fillStyle = this.theme.wallColor;
+          ctx.fillStyle = wallColor;
           ctx.fillRect(x, y, effectiveTile, effectiveTile);
         } else if (tile === TileType.GATE) {
           ctx.fillStyle = this.theme.gateColor;
@@ -566,7 +572,33 @@ export class CanvasRenderer {
         (hud.statusText === 'GAME OVER' ? this.theme.blinkyColor : this.theme.pacmanColor);
       ctx.textAlign = 'center';
       ctx.fillText(hud.statusText, canvasWidth / 2, 20 * effectiveTile);
+
+      if (hud.statusSubText) {
+        ctx.fillStyle = this.theme.textColor;
+        ctx.fillText(hud.statusSubText, canvasWidth / 2, 22 * effectiveTile);
+      }
     }
+  }
+
+  /**
+   * Renders firework sparks, fading out as they approach the end of their lifetime.
+   */
+  public renderParticles(particles: readonly FireworkParticle[]): void {
+    const ctx = this.context;
+    if (!ctx) return;
+
+    const size = Math.max(1, this.scale * 1.5);
+    for (const particle of particles) {
+      ctx.globalAlpha = Math.max(0, 1 - particle.age / particle.lifetime);
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(
+        particle.x * this.scale - size / 2,
+        particle.y * this.scale - size / 2,
+        size,
+        size,
+      );
+    }
+    ctx.globalAlpha = 1;
   }
 
   /**
@@ -574,7 +606,7 @@ export class CanvasRenderer {
    */
   public render(state: RenderGameState): void {
     this.clear();
-    this.renderWalls(state.grid);
+    this.renderWalls(state.grid, state.wallColor);
     this.renderPellets(state.grid, state.energizerVisible ?? true);
 
     if (state.ghosts) {
@@ -584,6 +616,10 @@ export class CanvasRenderer {
     }
 
     this.renderPacman(state.pacman, state.animationTick ?? 0);
+
+    if (state.particles) {
+      this.renderParticles(state.particles);
+    }
 
     if (state.hud) {
       this.renderHUD(state.hud);
