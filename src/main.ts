@@ -3,6 +3,7 @@ import { SoundManager } from './audio';
 import { TouchController } from './controls';
 import { Direction, GameLoop } from './core';
 import { CanvasRenderer, Fireworks, type RenderableGhost, type RenderableHUD } from './render';
+import { HALLOWEEN_EDITION, isHalloweenActive } from './themes';
 import { createToggleButtonView } from './ui';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
@@ -15,7 +16,18 @@ const SCALE = 2;
 const TILE_SIZE = 8;
 
 const soundManager = new SoundManager();
-const renderer = new CanvasRenderer({ canvas, scale: SCALE, tileSize: TILE_SIZE });
+// Seasonal edition (undefined = regular arcade look). Halloween: 24 Oct - 5 Nov 2026, or ?halloween=1/0
+const edition = isHalloweenActive(new Date(), window.location.search)
+  ? HALLOWEEN_EDITION
+  : undefined;
+
+const renderer = new CanvasRenderer({
+  canvas,
+  scale: SCALE,
+  tileSize: TILE_SIZE,
+  theme: edition?.theme,
+  sprites: edition?.sprites,
+});
 
 const gameLoop = GameLoop.createDefault({
   tileSize: TILE_SIZE,
@@ -36,6 +48,7 @@ const collisionManager = gameLoop.getCollisionManager();
 const fireworks = new Fireworks({
   width: grid.width * TILE_SIZE,
   height: grid.height * TILE_SIZE,
+  colors: edition?.fireworksColors,
 });
 
 // Unlock Web Audio context on first user interaction to comply with browser autoplay policies
@@ -140,8 +153,15 @@ new TouchController({
   onInteraction: unlockAudio,
 });
 
-const CELEBRATION_COLORS = ['#FFFF00', '#FF0000', '#FFB8FF', '#00FFFF', '#FFB852'];
-const CELEBRATION_WALL_COLORS = ['#2121DE', '#FFFFFF'];
+const WIN_TEXT = edition?.winText ?? 'YOU WIN!';
+const CELEBRATION_COLORS = edition?.celebrationColors ?? [
+  '#FFFF00',
+  '#FF0000',
+  '#FFB8FF',
+  '#00FFFF',
+  '#FFB852',
+];
+const CELEBRATION_WALL_COLORS = edition?.celebrationWallColors ?? ['#2121DE', '#FFFFFF'];
 
 function resolveStatus(
   isGameOver: boolean,
@@ -155,7 +175,7 @@ function resolveStatus(
   }
   if (isLevelCleared) {
     return {
-      statusText: 'YOU WIN!',
+      statusText: WIN_TEXT,
       statusTextColor: CELEBRATION_COLORS[animationTick % CELEBRATION_COLORS.length],
       statusSubText: 'ENTER / TAP TO PLAY AGAIN',
     };

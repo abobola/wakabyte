@@ -50,6 +50,32 @@ export const DEFAULT_CANVAS_THEME: CanvasTheme = {
 };
 
 /**
+ * Geometry and animation inputs handed to custom ghost sprite drawers.
+ * The ghost occupies the square [centerX - radius, centerX + radius] x [centerY - radius, centerY + radius].
+ */
+export interface GhostSpriteParams {
+  centerX: number;
+  centerY: number;
+  radius: number;
+  animationTick: number;
+  direction?: Direction;
+  isFlashing: boolean;
+}
+
+export type GhostSpriteDrawer = (ctx: CanvasRenderingContext2D, params: GhostSpriteParams) => void;
+
+/**
+ * Optional sprite overrides (e.g. for seasonal editions).
+ * Anything left undefined falls back to the default arcade sprite.
+ */
+export interface CanvasSprites {
+  /** Replaces the whole frightened (blue) ghost: body and face. */
+  drawFrightenedGhost?: GhostSpriteDrawer;
+  /** Replaces the eyes of an eaten ghost returning to the ghost house. */
+  drawEatenGhost?: GhostSpriteDrawer;
+}
+
+/**
  * Lightweight renderable representation of Pacman.
  */
 export interface RenderablePacman {
@@ -110,6 +136,7 @@ export interface CanvasRendererOptions {
   tileSize?: number;
   scale?: number;
   theme?: Partial<CanvasTheme>;
+  sprites?: CanvasSprites;
 }
 
 /**
@@ -122,6 +149,7 @@ export class CanvasRenderer {
   private tileSize: number;
   private scale: number;
   private readonly theme: CanvasTheme;
+  private readonly sprites: CanvasSprites;
 
   constructor(options: CanvasRendererOptions = {}) {
     if (options.context) {
@@ -138,6 +166,7 @@ export class CanvasRenderer {
       ...DEFAULT_CANVAS_THEME,
       ...options.theme,
     };
+    this.sprites = options.sprites ?? {};
   }
 
   /**
@@ -344,6 +373,19 @@ export class CanvasRenderer {
     const radius = Math.max(2, this.tileSize * 0.85 * this.scale);
     const state = ghost.state ?? GhostState.CHASE;
 
+    const spriteDrawer = this.getGhostSpriteOverride(state);
+    if (spriteDrawer) {
+      spriteDrawer(ctx, {
+        centerX,
+        centerY,
+        radius,
+        animationTick,
+        direction: ghost.direction,
+        isFlashing: ghost.isFlashing ?? false,
+      });
+      return;
+    }
+
     if (state !== GhostState.EATEN) {
       const bodyColor = this.getGhostBodyColor(ghost, state, animationTick);
       this.renderGhostBody(ctx, centerX, centerY, radius, bodyColor, animationTick);
@@ -354,6 +396,15 @@ export class CanvasRenderer {
     } else {
       this.renderGhostEyes(ctx, centerX, centerY, radius, ghost.direction);
     }
+  }
+
+  /**
+   * Returns the custom sprite drawer for a ghost state, if one is configured.
+   */
+  private getGhostSpriteOverride(state: GhostState): GhostSpriteDrawer | undefined {
+    if (state === GhostState.FRIGHTENED) return this.sprites.drawFrightenedGhost;
+    if (state === GhostState.EATEN) return this.sprites.drawEatenGhost;
+    return undefined;
   }
 
   /**
