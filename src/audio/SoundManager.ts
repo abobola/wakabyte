@@ -21,8 +21,27 @@ export enum AmbientMode {
   EYES = 'EYES',
 }
 
+/**
+ * Optional tweaks to the synthesized sounds (e.g. for seasonal editions).
+ * Anything left undefined keeps the classic arcade sound.
+ */
+export interface SoundProfile {
+  /** Alternating "waka" pellet tones in Hz. */
+  wakaTones?: readonly [number, number];
+  /** Base pitch of the ambient siren in Hz. */
+  sirenBaseHz?: number;
+  /** Pitch wobble speed of the siren in Hz. */
+  sirenLfoHz?: number;
+  /** Pitch wobble depth of the siren in Hz. */
+  sirenLfoDepthHz?: number;
+  sirenWaveform?: OscillatorType;
+  /** Notes of the arpeggio played when a ghost is eaten. */
+  ghostEatenNotes?: readonly number[];
+}
+
 export interface SoundManagerOptions {
   context?: AudioContext | null;
+  profile?: SoundProfile;
   masterVolume?: number;
   sfxVolume?: number;
   ambientVolume?: number;
@@ -56,9 +75,10 @@ export class SoundManager {
   private ambientVolume: number;
   private muted: boolean;
 
-  private readonly wakaToneA = 330;
-  private readonly wakaToneB = 490;
+  private readonly wakaToneA: number;
+  private readonly wakaToneB: number;
   private isWakaToneA = true;
+  private readonly profile: SoundProfile;
 
   private currentAmbientMode: AmbientMode = AmbientMode.NONE;
   private activeAmbientOsc: OscillatorNode | null = null;
@@ -70,6 +90,9 @@ export class SoundManager {
     this.sfxVolume = this.clampVolume(options.sfxVolume ?? 1.0);
     this.ambientVolume = this.clampVolume(options.ambientVolume ?? 0.5);
     this.muted = options.muted ?? false;
+    this.profile = options.profile ?? {};
+    this.wakaToneA = this.profile.wakaTones?.[0] ?? 330;
+    this.wakaToneB = this.profile.wakaTones?.[1] ?? 490;
 
     if (options.context !== undefined) {
       this.context = options.context;
@@ -242,7 +265,7 @@ export class SoundManager {
     if (!ctx || !this.sfxGain || ctx.state === 'suspended') return;
 
     const now = ctx.currentTime;
-    const notes = [440, 587, 659, 880];
+    const notes = this.profile.ghostEatenNotes ?? [440, 587, 659, 880];
     const noteDuration = 0.05;
 
     notes.forEach((freq, index) => {
@@ -375,15 +398,15 @@ export class SoundManager {
 
     switch (mode) {
       case AmbientMode.SIREN: {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(440, now);
+        osc.type = this.profile.sirenWaveform ?? 'sawtooth';
+        osc.frequency.setValueAtTime(this.profile.sirenBaseHz ?? 440, now);
 
         // Low frequency oscillator (LFO) for siren pitch modulation
         try {
           const lfo = ctx.createOscillator();
           const lfoGain = ctx.createGain();
-          lfo.frequency.setValueAtTime(3, now); // 3Hz modulation
-          lfoGain.gain.setValueAtTime(80, now); // +/- 80Hz
+          lfo.frequency.setValueAtTime(this.profile.sirenLfoHz ?? 3, now); // default 3Hz modulation
+          lfoGain.gain.setValueAtTime(this.profile.sirenLfoDepthHz ?? 80, now); // default +/- 80Hz
 
           lfo.connect(lfoGain);
           lfoGain.connect(osc.frequency);

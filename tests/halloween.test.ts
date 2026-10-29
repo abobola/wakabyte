@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { GhostState } from '../src/ai';
-import { Vector2D } from '../src/core';
+import { Grid, Vector2D } from '../src/core';
 import { CanvasRenderer, type CanvasSprites, type GhostSpriteParams } from '../src/render';
 import {
   drawBatGhost,
+  drawCandyEnergizer,
   drawPumpkinGhost,
   HALLOWEEN_EDITION,
+  HALLOWEEN_PAGE_TITLE,
+  HALLOWEEN_SOUND,
   isHalloweenActive,
   isHalloweenSeason,
 } from '../src/themes';
@@ -127,6 +130,67 @@ describe('Halloween edition', () => {
       };
 
       expect(wingPoints(0)).not.toBe(wingPoints(0.0785));
+    });
+  });
+
+  describe('pellets and energizers', () => {
+    const tile = (overrides = {}) => ({
+      centerX: 50,
+      centerY: 50,
+      tileSize: 16,
+      animationTick: 0,
+      ...overrides,
+    });
+
+    it('draws a candy energizer whose wrapper changes color with the animation', () => {
+      const fills = (animationTick: number) => {
+        const { ctx, calls } = createRecordingContext();
+        drawCandyEnergizer(ctx, tile({ animationTick }));
+        return calls.filter((c) => c.method === 'fill').map((c) => c.fillStyle);
+      };
+      expect(fills(0)).toContain('#B455FF');
+      expect(fills(0)).not.toContain('#7CFF3A');
+      expect(fills(0.25)).toContain('#7CFF3A');
+      expect(fills(0.25)).not.toContain('#B455FF');
+      expect(fills(0)).toContain('#FF7518');
+    });
+
+    it('keeps regular pellets and swaps only the energizer in the renderer', () => {
+      expect(HALLOWEEN_EDITION.sprites?.drawPellet).toBeUndefined();
+      const grid = Grid.fromStringArray(['####', '#.o#', '####']);
+      const { ctx, calls } = createRecordingContext();
+      const renderer = new CanvasRenderer({
+        context: ctx,
+        tileSize: 8,
+        scale: 2,
+        theme: HALLOWEEN_EDITION.theme,
+        sprites: HALLOWEEN_EDITION.sprites,
+      });
+      renderer.renderPellets(grid, true, 0);
+      const fills = calls.filter((c) => c.method === 'fill').map((c) => c.fillStyle);
+      expect(fills).toContain('#B455FF');
+      expect(calls.some((c) => c.method === 'arc')).toBe(true);
+    });
+
+    it('hides the energizer sprite on the blink-off frame', () => {
+      const grid = Grid.fromStringArray(['####', '#.o#', '####']);
+      const { ctx, calls } = createRecordingContext();
+      const renderer = new CanvasRenderer({
+        context: ctx,
+        tileSize: 8,
+        scale: 2,
+        sprites: HALLOWEEN_EDITION.sprites,
+      });
+      renderer.renderPellets(grid, false, 0);
+      expect(calls.some((c) => c.fillStyle === '#B455FF')).toBe(false);
+    });
+  });
+
+  describe('edition extras', () => {
+    it('ships a spooky sound profile and page title', () => {
+      expect(HALLOWEEN_EDITION.sound).toBe(HALLOWEEN_SOUND);
+      expect(HALLOWEEN_SOUND.sirenWaveform).toBe('triangle');
+      expect(HALLOWEEN_EDITION.pageTitle).toBe(HALLOWEEN_PAGE_TITLE);
     });
   });
 

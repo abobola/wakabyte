@@ -1,4 +1,5 @@
-import type { CanvasSprites, CanvasTheme, GhostSpriteParams } from '../render';
+import type { SoundProfile } from '../audio';
+import type { CanvasSprites, CanvasTheme, GhostSpriteParams, TileSpriteParams } from '../render';
 import type { Edition } from './Edition';
 
 /**
@@ -206,6 +207,55 @@ export function drawBatGhost(
   }
 }
 
+const CANDY_WRAPPER = '#B455FF';
+const CANDY_WRAPPER_ALT = '#7CFF3A';
+const CANDY_BODY = '#FF7518';
+const CANDY_STRIPE = '#FFF3A0';
+
+/**
+ * Energizer drawn as a wrapped sweet; the twisted wrapper ends alternate colors with the animation.
+ */
+export function drawCandyEnergizer(
+  ctx: CanvasRenderingContext2D,
+  { centerX, centerY, tileSize, animationTick }: TileSpriteParams,
+): void {
+  const radius = Math.max(3, tileSize * 0.46);
+  const wrapper = Math.floor(animationTick * 4) % 2 === 0 ? CANDY_WRAPPER : CANDY_WRAPPER_ALT;
+
+  for (const side of MIRRORED) {
+    fillPolygon(
+      ctx,
+      centerX,
+      centerY,
+      radius,
+      [
+        [side * 0.45, 0],
+        [side * 1.05, -0.5],
+        [side * 1.05, 0.5],
+      ],
+      wrapper,
+    );
+  }
+
+  fillEllipse(ctx, centerX, centerY, radius * 0.62, radius * 0.62, CANDY_BODY);
+  ctx.fillStyle = CANDY_STRIPE;
+  ctx.fillRect(centerX - radius * 0.08, centerY - radius * 0.55, radius * 0.16, radius * 1.1);
+}
+
+/**
+ * Spookier, minor-key sound set: low wobbling triangle siren, minor waka and a minor ghost arpeggio.
+ */
+export const HALLOWEEN_SOUND: SoundProfile = {
+  wakaTones: [311, 466],
+  sirenBaseHz: 330,
+  sirenLfoHz: 1.5,
+  sirenLfoDepthHz: 55,
+  sirenWaveform: 'triangle',
+  ghostEatenNotes: [392, 466, 622, 784],
+};
+
+export const HALLOWEEN_PAGE_TITLE = '🎃 Wakabyte – Happy Halloween';
+
 export const HALLOWEEN_THEME: Partial<CanvasTheme> = {
   wallColor: '#6B2FBF',
   gateColor: PUMPKIN_ORANGE,
@@ -218,6 +268,7 @@ export const HALLOWEEN_THEME: Partial<CanvasTheme> = {
 export const HALLOWEEN_SPRITES: CanvasSprites = {
   drawFrightenedGhost: drawPumpkinGhost,
   drawEatenGhost: drawBatGhost,
+  drawEnergizer: drawCandyEnergizer,
 };
 
 const HALLOWEEN_FIREWORK_COLORS = ['#FF7518', '#B455FF', '#7CFF3A', '#FFB347', '#FFFFFF'];
@@ -226,6 +277,8 @@ export const HALLOWEEN_EDITION: Edition = {
   name: 'halloween',
   theme: HALLOWEEN_THEME,
   sprites: HALLOWEEN_SPRITES,
+  sound: HALLOWEEN_SOUND,
+  pageTitle: HALLOWEEN_PAGE_TITLE,
   winText: 'HAPPY HALLOWEEN!',
   celebrationColors: HALLOWEEN_FIREWORK_COLORS,
   celebrationWallColors: ['#6B2FBF', PUMPKIN_ORANGE],

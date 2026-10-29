@@ -1,3 +1,4 @@
+import type { SoundProfile } from '../audio';
 import type { CanvasSprites, CanvasTheme } from '../render';
 
 /**
@@ -8,6 +9,10 @@ export interface Edition {
   name: string;
   theme?: Partial<CanvasTheme>;
   sprites?: CanvasSprites;
+  /** Tweaks to the synthesized sound effects and siren. */
+  sound?: SoundProfile;
+  /** Replaces the browser tab title. */
+  pageTitle?: string;
   /** Replaces the "YOU WIN!" headline. */
   winText?: string;
   /** Colors cycled by the win headline. */

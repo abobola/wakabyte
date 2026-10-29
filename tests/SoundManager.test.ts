@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AmbientMode, SoundManager } from '../src/audio';
+import { AmbientMode, SoundManager, type SoundProfile } from '../src/audio';
 
 /**
  * Mock AudioParam tracking automation curves and value changes.
@@ -556,5 +556,49 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
         }),
       ).toBe(AmbientMode.NONE);
     });
+  });
+});
+
+describe('SoundManager sound profile', () => {
+  const createManager = (profile?: SoundProfile) => {
+    const context = new MockAudioContext('running');
+    const manager = new SoundManager({ context: context as unknown as AudioContext, profile });
+    return { context, manager };
+  };
+
+  it('keeps the classic arcade sounds without a profile', () => {
+    const { context, manager } = createManager();
+
+    manager.playPellet();
+    manager.playGhostEaten();
+    manager.updateAmbient(AmbientMode.SIREN);
+
+    const first = context.createdOscillators.map((osc) => osc.frequency.events[0]?.value);
+    expect(first[0]).toBe(330);
+    expect(first.slice(1, 5)).toEqual([440, 587, 659, 880]);
+    expect(context.createdOscillators[5].type).toBe('sawtooth');
+    expect(context.createdOscillators[5].frequency.events[0].value).toBe(440);
+  });
+
+  it('applies custom waka tones, ghost arpeggio and siren settings', () => {
+    const { context, manager } = createManager({
+      wakaTones: [200, 300],
+      ghostEatenNotes: [100, 150],
+      sirenBaseHz: 250,
+      sirenWaveform: 'triangle',
+    });
+
+    manager.playPellet();
+    manager.playPellet();
+    manager.playGhostEaten();
+    manager.updateAmbient(AmbientMode.SIREN);
+
+    const osc = context.createdOscillators;
+    expect(osc[0].frequency.events[0].value).toBe(200);
+    expect(osc[1].frequency.events[0].value).toBe(300);
+    expect(osc[2].frequency.events[0].value).toBe(100);
+    expect(osc[3].frequency.events[0].value).toBe(150);
+    expect(osc[4].type).toBe('triangle');
+    expect(osc[4].frequency.events[0].value).toBe(250);
   });
 });

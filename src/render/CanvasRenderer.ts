@@ -65,6 +65,19 @@ export interface GhostSpriteParams {
 export type GhostSpriteDrawer = (ctx: CanvasRenderingContext2D, params: GhostSpriteParams) => void;
 
 /**
+ * Geometry handed to custom pellet / energizer drawers.
+ * `tileSize` is the on-screen tile edge in pixels; the item is centered in its tile.
+ */
+export interface TileSpriteParams {
+  centerX: number;
+  centerY: number;
+  tileSize: number;
+  animationTick: number;
+}
+
+export type TileSpriteDrawer = (ctx: CanvasRenderingContext2D, params: TileSpriteParams) => void;
+
+/**
  * Optional sprite overrides (e.g. for seasonal editions).
  * Anything left undefined falls back to the default arcade sprite.
  */
@@ -73,6 +86,10 @@ export interface CanvasSprites {
   drawFrightenedGhost?: GhostSpriteDrawer;
   /** Replaces the eyes of an eaten ghost returning to the ghost house. */
   drawEatenGhost?: GhostSpriteDrawer;
+  /** Replaces the small round pellet. */
+  drawPellet?: TileSpriteDrawer;
+  /** Replaces the big flashing energizer. */
+  drawEnergizer?: TileSpriteDrawer;
 }
 
 /**
@@ -271,7 +288,11 @@ export class CanvasRenderer {
   /**
    * Renders normal pellets and flashing energizers across the grid.
    */
-  public renderPellets(grid: Grid, energizerVisible: boolean = true): void {
+  public renderPellets(
+    grid: Grid,
+    energizerVisible: boolean = true,
+    animationTick: number = 0,
+  ): void {
     const ctx = this.context;
     if (!ctx) return;
 
@@ -285,21 +306,36 @@ export class CanvasRenderer {
         const centerX = col * effectiveTile + effectiveTile / 2;
         const centerY = row * effectiveTile + effectiveTile / 2;
 
+        const spot = { centerX, centerY, tileSize: effectiveTile, animationTick };
         if (tile === TileType.PELLET) {
-          const radius = Math.max(1, effectiveTile * 0.18);
-          ctx.fillStyle = this.theme.pelletColor;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-          ctx.fill();
+          this.renderPellet(ctx, spot);
         } else if (tile === TileType.ENERGIZER && energizerVisible) {
-          const radius = Math.max(2, effectiveTile * 0.42);
-          ctx.fillStyle = this.theme.energizerColor;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-          ctx.fill();
+          this.renderEnergizer(ctx, spot);
         }
       }
     }
+  }
+
+  private renderPellet(ctx: CanvasRenderingContext2D, spot: TileSpriteParams): void {
+    if (this.sprites.drawPellet) {
+      this.sprites.drawPellet(ctx, spot);
+      return;
+    }
+    ctx.fillStyle = this.theme.pelletColor;
+    ctx.beginPath();
+    ctx.arc(spot.centerX, spot.centerY, Math.max(1, spot.tileSize * 0.18), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private renderEnergizer(ctx: CanvasRenderingContext2D, spot: TileSpriteParams): void {
+    if (this.sprites.drawEnergizer) {
+      this.sprites.drawEnergizer(ctx, spot);
+      return;
+    }
+    ctx.fillStyle = this.theme.energizerColor;
+    ctx.beginPath();
+    ctx.arc(spot.centerX, spot.centerY, Math.max(2, spot.tileSize * 0.42), 0, Math.PI * 2);
+    ctx.fill();
   }
 
   /**
@@ -658,7 +694,7 @@ export class CanvasRenderer {
   public render(state: RenderGameState): void {
     this.clear();
     this.renderWalls(state.grid, state.wallColor);
-    this.renderPellets(state.grid, state.energizerVisible ?? true);
+    this.renderPellets(state.grid, state.energizerVisible ?? true, state.animationTick ?? 0);
 
     if (state.ghosts) {
       for (const ghost of state.ghosts) {

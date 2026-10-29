@@ -15,11 +15,16 @@ if (!canvas) {
 const SCALE = 2;
 const TILE_SIZE = 8;
 
-const soundManager = new SoundManager();
 // Seasonal edition (undefined = regular arcade look). Halloween: 24 Oct - 5 Nov 2026, or ?halloween=1/0
 const edition = isHalloweenActive(new Date(), window.location.search)
   ? HALLOWEEN_EDITION
   : undefined;
+
+if (edition?.pageTitle) {
+  document.title = edition.pageTitle;
+}
+
+const soundManager = new SoundManager({ profile: edition?.sound });
 
 const renderer = new CanvasRenderer({
   canvas,
