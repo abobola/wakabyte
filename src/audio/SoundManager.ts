@@ -114,10 +114,12 @@ export class SoundManager {
 
   /**
    * Unlocks and resumes audio context on user gesture (click/keydown).
+   * Resumes from any non-running state except 'closed', e.g. 'suspended' or the 'interrupted'
+   * state Safari/iOS reports after a call or screen lock.
    */
   public async resume(): Promise<void> {
     const ctx = this.ensureContext();
-    if (ctx?.state === 'suspended') {
+    if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') {
       await ctx.resume();
     }
     if (this.currentAmbientMode !== AmbientMode.NONE && !this.activeAmbientOsc) {
@@ -160,6 +162,15 @@ export class SoundManager {
 
   public isMuted(): boolean {
     return this.muted;
+  }
+
+  /**
+   * True only when the player can actually hear sound: the audio context is running and not muted.
+   * A context that is missing or still suspended by the browser autoplay policy is silent,
+   * just like muted audio.
+   */
+  public isAudible(): boolean {
+    return this.context !== null && this.context.state === 'running' && !this.muted;
   }
 
   public setMuted(muted: boolean): void {

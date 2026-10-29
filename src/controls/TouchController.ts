@@ -127,8 +127,9 @@ export class TouchController {
 
     const handlePress = (event: Event): void => {
       event.preventDefault();
-      this.options.onInteraction?.();
+      // Run the action first so it can tell whether this press is the very first interaction
       action();
+      this.options.onInteraction?.();
     };
 
     element.addEventListener('pointerdown', handlePress);

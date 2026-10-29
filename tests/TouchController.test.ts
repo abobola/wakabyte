@@ -144,6 +144,27 @@ describe('TouchController', () => {
       controller.destroy();
     });
 
+    it('runs the action callback before the interaction callback on action buttons', () => {
+      const calls: string[] = [];
+
+      const controller = new TouchController({
+        pauseButton: mockBtnPause as unknown as HTMLElement,
+        muteButton: mockBtnMute as unknown as HTMLElement,
+        onPauseToggle: () => calls.push('pause'),
+        onMuteToggle: () => calls.push('mute'),
+        onInteraction: () => calls.push('interaction'),
+      });
+
+      mockBtnMute.dispatch('pointerdown');
+      expect(calls).toEqual(['mute', 'interaction']);
+
+      calls.length = 0;
+      mockBtnPause.dispatch('pointerdown');
+      expect(calls).toEqual(['pause', 'interaction']);
+
+      controller.destroy();
+    });
+
     it('handles missing optional elements gracefully', () => {
       expect(() => {
         const controller = new TouchController({});

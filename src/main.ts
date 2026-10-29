@@ -3,6 +3,7 @@ import { SoundManager } from './audio';
 import { TouchController } from './controls';
 import { Direction, GameLoop } from './core';
 import { CanvasRenderer, type RenderableGhost } from './render';
+import { createToggleButtonView } from './ui';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
 
@@ -35,12 +36,22 @@ const collisionManager = gameLoop.getCollisionManager();
 
 // Unlock Web Audio context on first user interaction to comply with browser autoplay policies
 const unlockAudio = (): void => {
-  void soundManager.resume();
+  soundManager.resume().catch((error: unknown) => {
+    // The browser may refuse to resume audio; the game stays playable and the button stays on UNMUTE
+    console.warn('Unable to resume audio context', error);
+  });
 };
-window.addEventListener('keydown', unlockAudio, { once: true });
-window.addEventListener('click', unlockAudio, { once: true });
-window.addEventListener('touchstart', unlockAudio, { once: true });
-window.addEventListener('pointerdown', unlockAudio, { once: true });
+
+// Audio that is not running yet (not loaded or suspended by autoplay policy) is silent,
+// so the first mute press turns sound on instead of muting
+const toggleSound = (): void => {
+  if (soundManager.isAudible()) {
+    soundManager.setMuted(true);
+    return;
+  }
+  soundManager.setMuted(false);
+  unlockAudio();
+};
 
 // Keyboard input binding for responsive player controls
 window.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -71,13 +82,30 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
       event.preventDefault();
       break;
     case 'KeyM':
-      soundManager.toggleMute();
+      toggleSound();
       event.preventDefault();
       break;
     default:
       break;
   }
 });
+
+// Registered after the keyboard handler so the first 'M' press is handled before audio is unlocked
+window.addEventListener('keydown', unlockAudio, { once: true });
+window.addEventListener('click', unlockAudio, { once: true });
+window.addEventListener('touchstart', unlockAudio, { once: true });
+window.addEventListener('pointerdown', unlockAudio, { once: true });
+
+// The browser may suspend or interrupt audio while the tab is hidden or the device is locked;
+// try to recover when the player comes back (the button label follows the real audio state)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && soundManager.isInitialized()) {
+    unlockAudio();
+  }
+});
+
+const pauseButton = document.getElementById('btn-pause');
+const muteButton = document.getElementById('btn-mute');
 
 // Touch and virtual on-screen gamepad controller for mobile and touch-enabled devices
 new TouchController({
@@ -86,12 +114,12 @@ new TouchController({
   dpadDown: document.getElementById('btn-down'),
   dpadLeft: document.getElementById('btn-left'),
   dpadRight: document.getElementById('btn-right'),
-  pauseButton: document.getElementById('btn-pause'),
-  muteButton: document.getElementById('btn-mute'),
+  pauseButton,
+  muteButton,
   swipeElement: canvas,
   onDirection: (direction) => pacman.requestDirection(direction),
   onPauseToggle: () => gameLoop.togglePause(),
-  onMuteToggle: () => soundManager.toggleMute(),
+  onMuteToggle: toggleSound,
   onInteraction: unlockAudio,
 });
 
@@ -112,6 +140,18 @@ function resolveStatusText(
   return undefined;
 }
 
+const pauseButtonView = createToggleButtonView(
+  pauseButton,
+  { icon: '⏸', label: 'PAUSE' },
+  { icon: '▶', label: 'PLAY' },
+);
+// "Toggled" means silent for the mute button: audio that is not running yet counts as muted
+const muteButtonView = createToggleButtonView(
+  muteButton,
+  { icon: '🔊', label: 'MUTE' },
+  { icon: '🔇', label: 'UNMUTE' },
+);
+
 let lastTimestamp = performance.now();
 
 function frameStep(currentTimestamp: number): void {
@@ -131,6 +171,10 @@ function frameStep(currentTimestamp: number): void {
     isGameOver: collisionManager.isGameOver(),
   });
   soundManager.updateAmbient(ambientMode);
+
+  // 2b. Reflect pause/mute state in the action buttons
+  pauseButtonView.setToggled(gameLoop.isPaused());
+  muteButtonView.setToggled(!soundManager.isAudible());
 
   // 3. Map renderable ghost visual states
   const isFlashing = waveTimer.isFrightenedFlashing();

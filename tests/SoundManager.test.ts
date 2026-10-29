@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AmbientMode, SoundManager } from '../src/audio';
 
 /**
@@ -209,6 +209,30 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
       expect(suspendedContext.state).toBe('running');
     });
 
+    it('resumes a context left in the interrupted state (Safari/iOS)', async () => {
+      const interruptedContext = new MockAudioContext('interrupted' as AudioContextState);
+      const manager = new SoundManager({
+        context: interruptedContext as unknown as AudioContext,
+      });
+
+      expect(manager.isAudible()).toBe(false);
+      await manager.resume();
+      expect(interruptedContext.state).toBe('running');
+      expect(manager.isAudible()).toBe(true);
+    });
+
+    it('does not try to resume a closed context', async () => {
+      const closedContext = new MockAudioContext('closed');
+      const resumeSpy = vi.spyOn(closedContext, 'resume');
+      const manager = new SoundManager({
+        context: closedContext as unknown as AudioContext,
+      });
+
+      await manager.resume();
+      expect(resumeSpy).not.toHaveBeenCalled();
+      expect(manager.isAudible()).toBe(false);
+    });
+
     it('defers ambient oscillator creation when context is suspended and starts on resume', async () => {
       const suspendedContext = new MockAudioContext('suspended');
       const manager = new SoundManager({
@@ -278,6 +302,27 @@ describe('Procedural Web Audio Synthesizer (Phase 6.2)', () => {
       const unmutedAgain = soundManager.toggleMute();
       expect(unmutedAgain).toBe(false);
       expect(soundManager.isMuted()).toBe(false);
+    });
+
+    it('treats not-yet-loaded audio as inaudible, same as muted', () => {
+      const unloaded = new SoundManager();
+      expect(unloaded.isInitialized()).toBe(false);
+      expect(unloaded.isAudible()).toBe(false);
+
+      expect(soundManager.isAudible()).toBe(true);
+      soundManager.setMuted(true);
+      expect(soundManager.isAudible()).toBe(false);
+      soundManager.setMuted(false);
+      expect(soundManager.isAudible()).toBe(true);
+    });
+
+    it('treats a suspended audio context as inaudible until resumed', async () => {
+      const suspended = new MockAudioContext('suspended');
+      const manager = new SoundManager({ context: suspended as unknown as AudioContext });
+      expect(manager.isInitialized()).toBe(true);
+      expect(manager.isAudible()).toBe(false);
+      await manager.resume();
+      expect(manager.isAudible()).toBe(true);
     });
 
     it('sets mute explicitly', () => {

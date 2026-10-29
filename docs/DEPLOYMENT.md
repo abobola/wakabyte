@@ -30,7 +30,7 @@ Deployment to GitHub Pages is fully automated through `.github/workflows/ci.yml`
    - `npm ci`
    - `npm run lint` (Biome + ESLint with SonarJS)
    - `npm run typecheck`
-   - `npm run test:run` (312 unit tests)
+   - `npm run test:run` (unit tests)
    - `npm run build`
    - Deploy `dist/` to GitHub Pages.
 
