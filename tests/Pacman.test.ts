@@ -344,6 +344,63 @@ describe('Pacman Controller', () => {
       expect(pacman.getDesiredDirection()).toBe(Direction.NONE);
       expect(pacman.getDirection()).toBe(Direction.RIGHT);
     });
+
+    it('should keep an early turn command until the first possible turn by default', () => {
+      const pacman = new Pacman({
+        grid,
+        tileSize,
+        position: new Vector2D(10, 12), // 2px before the center of tile (1, 1)
+        direction: Direction.RIGHT,
+        speed: 1, // very slow: reaching the center takes 2 seconds
+      });
+
+      pacman.requestDirection(Direction.DOWN);
+      pacman.update(1.5);
+
+      expect(pacman.getDesiredDirection()).toBe(Direction.DOWN);
+      expect(pacman.getDirection()).toBe(Direction.RIGHT);
+
+      pacman.update(1);
+
+      expect(pacman.getDirection()).toBe(Direction.DOWN);
+      expect(pacman.getDesiredDirection()).toBe(Direction.NONE);
+    });
+
+    it('should apply only the last command when several turns are requested early', () => {
+      const pacman = new Pacman({
+        grid,
+        tileSize,
+        position: new Vector2D(10, 12),
+        direction: Direction.RIGHT,
+        speed: 1,
+      });
+
+      pacman.requestDirection(Direction.UP); // blocked by a wall, but replaced anyway
+      pacman.requestDirection(Direction.DOWN);
+      pacman.update(3);
+
+      expect(pacman.getDirection()).toBe(Direction.DOWN);
+    });
+
+    it('should wait for a wall-blocked turn and apply it at the next opening', () => {
+      const pacman = new Pacman({
+        grid,
+        tileSize,
+        tile: new Vector2D(2, 1),
+        direction: Direction.LEFT,
+        speed: 80,
+      });
+
+      // Tile (2, 2) is a wall, so DOWN cannot be taken here but stays stored
+      pacman.requestDirection(Direction.DOWN);
+      pacman.update(0.05);
+      expect(pacman.getDirection()).toBe(Direction.LEFT);
+      expect(pacman.getDesiredDirection()).toBe(Direction.DOWN);
+
+      // Reaching tile (1, 1), where DOWN is open
+      pacman.update(0.2);
+      expect(pacman.getDirection()).toBe(Direction.DOWN);
+    });
   });
 
   describe('Tunnel Wrap-Around Movement', () => {

@@ -2,8 +2,10 @@ import { Direction } from './Direction';
 
 /**
  * Default timeout in milliseconds before a buffered turn request expires.
+ * Infinity keeps the last command until it can be applied or is replaced by a newer one,
+ * so pressing a direction slightly too early never loses the turn.
  */
-export const DEFAULT_INPUT_BUFFER_TIMEOUT_MS = 250;
+export const DEFAULT_INPUT_BUFFER_TIMEOUT_MS = Number.POSITIVE_INFINITY;
 
 /**
  * Single-slot input buffer queue for capturing player directional intent with expiration timeouts.

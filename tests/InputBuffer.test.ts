@@ -16,6 +16,15 @@ describe('InputBuffer', () => {
       expect(buffer.consume()).toBe(Direction.NONE);
     });
 
+    it('should keep the last command indefinitely by default', () => {
+      buffer.enqueue(Direction.LEFT, 0);
+
+      buffer.update(60_000);
+
+      expect(buffer.peek()).toBe(Direction.LEFT);
+      expect(buffer.peek(60_000)).toBe(Direction.LEFT);
+    });
+
     it('should allow custom timeout in constructor and clamp negative values to zero', () => {
       const customBuffer = new InputBuffer(500);
       expect(customBuffer.getTimeout()).toBe(500);
