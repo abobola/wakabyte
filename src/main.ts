@@ -1,10 +1,10 @@
 import { GhostState } from './ai';
 import { SoundManager } from './audio';
-import { TouchController } from './controls';
-import { Direction, GameLoop } from './core';
-import { CanvasRenderer, Fireworks, type RenderableGhost, type RenderableHUD } from './render';
+import { attachKeyboardControls, TouchController } from './controls';
+import { GameLoop } from './core';
+import { CanvasRenderer, Fireworks, type RenderableGhost } from './render';
 import { HALLOWEEN_EDITION, isHalloweenActive } from './themes';
-import { createToggleButtonView } from './ui';
+import { createToggleButtonView, resolveStatus } from './ui';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
 
@@ -83,44 +83,11 @@ const restartIfFinished = (): void => {
 };
 
 // Keyboard input binding for responsive player controls
-window.addEventListener('keydown', (event: KeyboardEvent) => {
-  switch (event.code) {
-    case 'ArrowUp':
-    case 'KeyW':
-      pacman.requestDirection(Direction.UP);
-      event.preventDefault();
-      break;
-    case 'ArrowDown':
-    case 'KeyS':
-      pacman.requestDirection(Direction.DOWN);
-      event.preventDefault();
-      break;
-    case 'ArrowLeft':
-    case 'KeyA':
-      pacman.requestDirection(Direction.LEFT);
-      event.preventDefault();
-      break;
-    case 'ArrowRight':
-    case 'KeyD':
-      pacman.requestDirection(Direction.RIGHT);
-      event.preventDefault();
-      break;
-    case 'KeyP':
-    case 'Space':
-      gameLoop.togglePause();
-      event.preventDefault();
-      break;
-    case 'KeyM':
-      toggleSound();
-      event.preventDefault();
-      break;
-    case 'Enter':
-      restartIfFinished();
-      event.preventDefault();
-      break;
-    default:
-      break;
-  }
+attachKeyboardControls(window, {
+  onDirection: (direction) => pacman.requestDirection(direction),
+  onPauseToggle: () => gameLoop.togglePause(),
+  onMuteToggle: toggleSound,
+  onRestart: restartIfFinished,
 });
 
 // Registered after the keyboard handler so the first 'M' press is handled before audio is unlocked
@@ -158,41 +125,7 @@ new TouchController({
   onInteraction: unlockAudio,
 });
 
-const WIN_TEXT = edition?.winText ?? 'YOU WIN!';
-const CELEBRATION_COLORS = edition?.celebrationColors ?? [
-  '#FFFF00',
-  '#FF0000',
-  '#FFB8FF',
-  '#00FFFF',
-  '#FFB852',
-];
 const CELEBRATION_WALL_COLORS = edition?.celebrationWallColors ?? ['#2121DE', '#FFFFFF'];
-
-function resolveStatus(
-  isGameOver: boolean,
-  isLevelCleared: boolean,
-  isPaused: boolean,
-  pacmanDirection: Direction,
-  animationTick: number,
-): Pick<RenderableHUD, 'statusText' | 'statusTextColor' | 'statusSubText'> {
-  if (isGameOver) {
-    return { statusText: 'GAME OVER', statusSubText: 'ENTER / TAP TO PLAY AGAIN' };
-  }
-  if (isLevelCleared) {
-    return {
-      statusText: WIN_TEXT,
-      statusTextColor: CELEBRATION_COLORS[animationTick % CELEBRATION_COLORS.length],
-      statusSubText: 'ENTER / TAP TO PLAY AGAIN',
-    };
-  }
-  if (isPaused) {
-    return { statusText: 'PAUSED' };
-  }
-  if (pacmanDirection === Direction.NONE) {
-    return { statusText: 'READY!' };
-  }
-  return {};
-}
 
 const pauseButtonView = createToggleButtonView(
   pauseButton,
@@ -268,11 +201,14 @@ function frameStep(currentTimestamp: number): void {
       highScore: scoreManager.getHighScore(),
       lives: collisionManager.getLives(),
       ...resolveStatus(
-        collisionManager.isGameOver(),
-        gameLoop.isLevelCleared(),
-        gameLoop.isPaused(),
-        pacman.getDirection(),
-        animationTick,
+        {
+          isGameOver: collisionManager.isGameOver(),
+          isLevelCleared: isCelebrating,
+          isPaused: gameLoop.isPaused(),
+          pacmanDirection: pacman.getDirection(),
+          animationTick,
+        },
+        { winText: edition?.winText, celebrationColors: edition?.celebrationColors },
       ),
     },
     energizerVisible: Math.floor(currentTimestamp / 250) % 2 === 0,
