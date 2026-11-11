@@ -145,7 +145,11 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 18px;
+  box-sizing: border-box;
+  /* Fixed size so swapping icon/label (PAUSE/PLAY, MUTE/UNMUTE) never resizes the button */
+  width: 9rem;
+  height: 2.9rem;
+  padding: 0 12px;
   background: #181824;
   color: #00d2ff;
   border: 2px solid #2d4560;
@@ -175,11 +179,13 @@ canvas {
   background: #00d2ff;
   color: #111;
   border-color: #00d2ff;
-  transform: scale(0.94);
   box-shadow: 0 0 12px rgba(0, 210, 255, 0.7);
 }
 
 .btn-icon {
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
   font-size: 0.95rem;
 }
 
@@ -209,7 +215,9 @@ canvas {
   }
 
   .action-btn {
-    padding: 8px 14px;
+    width: 8.25rem;
+    height: 2.6rem;
+    padding: 0 10px;
     font-size: 0.75rem;
   }
 }
