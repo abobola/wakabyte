@@ -402,9 +402,9 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
         isFlashing: true,
       };
 
-      // In CanvasRenderer: flashCycle = Math.floor(animationTick * 8) % 2
-      // For animationTick = 0.125: Math.floor(0.125 * 8) = 1, 1 % 2 = 1 -> frightenedFlashColor (#FFFFFF)
-      renderer.renderGhost(ghost, 0.125);
+      // In CanvasRenderer: flashCycle = Math.floor(animationTick * 0.8) % 2
+      // For animationTick = 12: Math.floor(12 * 0.8) = 9, 9 % 2 = 1 -> frightenedFlashColor (#FFFFFF)
+      renderer.renderGhost(ghost, 12);
 
       const flashFillCall = ctx.calls.find(
         (c) => c.method === 'fill' && c.args[0] === DEFAULT_CANVAS_THEME.frightenedFlashColor,
@@ -515,6 +515,26 @@ describe('Canvas 2D Renderer (Phase 6.1)', () => {
         (c) => c.method === 'fillText' && c.args[0] === '24000',
       );
       expect(highScoreValCall).toBeDefined();
+    });
+
+    it('renders the Frightened mode countdown on the right while it is active', () => {
+      renderer.renderHUD({ score: 0, lives: 3, frightenedTimeLeft: 3.2 });
+
+      const labelCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === 'FRIGHT');
+      const timeCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === '4s');
+      const highScoreCall = ctx.calls.find(
+        (c) => c.method === 'fillText' && c.args[0] === 'HIGH SCORE',
+      );
+      expect(labelCall).toBeDefined();
+      expect(timeCall).toBeDefined();
+      expect(labelCall?.args[1]).toBeGreaterThan(highScoreCall?.args[1] as number);
+    });
+
+    it('does not render the Frightened mode countdown when it is inactive', () => {
+      renderer.renderHUD({ score: 0, lives: 3 });
+
+      const labelCall = ctx.calls.find((c) => c.method === 'fillText' && c.args[0] === 'FRIGHT');
+      expect(labelCall).toBeUndefined();
     });
 
     it('renders remaining lives as mini-Pacman icons', () => {

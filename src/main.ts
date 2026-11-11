@@ -193,6 +193,8 @@ function frameStep(currentTimestamp: number): void {
     hud: {
       score: scoreManager.getScore(),
       highScore: scoreManager.getHighScore(),
+      frightenedTimeLeft: isFrightened ? waveTimer.getFrightenedTimeRemaining() : undefined,
+      frightenedFlashing: isFlashing,
       lives: collisionManager.getLives(),
       ...resolveStatus(
         {

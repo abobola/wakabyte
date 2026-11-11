@@ -127,6 +127,10 @@ export interface RenderableGhost {
 export interface RenderableHUD {
   score: number;
   highScore?: number;
+  /** Seconds left in Frightened mode; the countdown is shown only while this is set. */
+  frightenedTimeLeft?: number;
+  /** Whether Frightened mode is about to end (countdown uses the flash color). */
+  frightenedFlashing?: boolean;
   lives?: number;
   level?: number;
   statusText?: string;
@@ -472,6 +476,19 @@ export class CanvasRenderer {
     ctx.fillText('HIGH SCORE', 10 * effectiveTile, effectiveTile);
     const highScore = hud.highScore ?? 0;
     ctx.fillText(highScore.toString(), 10 * effectiveTile, 2 * effectiveTile);
+
+    // Frightened mode countdown (top right)
+    if (hud.frightenedTimeLeft !== undefined) {
+      const secondsLeft = Math.max(0, Math.ceil(hud.frightenedTimeLeft));
+      ctx.fillStyle = hud.frightenedFlashing
+        ? this.theme.frightenedFlashColor
+        : this.theme.frightenedColor;
+      ctx.textAlign = 'right';
+      ctx.fillText('FRIGHT', 26 * effectiveTile, effectiveTile);
+      ctx.fillText(`${secondsLeft}s`, 26 * effectiveTile, 2 * effectiveTile);
+      ctx.fillStyle = this.theme.textColor;
+      ctx.textAlign = 'left';
+    }
 
     // Remaining lives (rendered as mini-Pacman icons at bottom)
     const lives = hud.lives ?? 0;

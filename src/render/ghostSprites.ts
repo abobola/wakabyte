@@ -13,7 +13,7 @@ export function getGhostBodyColor(
 ): string {
   if (state === GhostState.FRIGHTENED) {
     if (ghost.isFlashing) {
-      const flashCycle = Math.floor(animationTick * 8) % 2;
+      const flashCycle = Math.floor(animationTick * 0.8) % 2;
       return flashCycle === 0 ? theme.frightenedColor : theme.frightenedFlashColor;
     }
     return theme.frightenedColor;
